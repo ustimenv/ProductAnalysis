@@ -1,83 +1,78 @@
 from time import time
 
-import mxnet as mx
 from gluoncv.loss import SSDMultiBoxLoss
-from mxnet import autograd, gluon
-from mxnet.gluon.data import DataLoader
-from mxnet.gluon.data.vision import ImageRecordDataset
+from mxnet import gluon
+from mxnet import image
 
-from SSDtrans import SSDTrainTransform
-from janet import Janet
+from janet import *
+from targetGen import *
 
 
 class Trainer:
+    BATCH_SIZE = 16
+    NUM_EPOCHS = 13
+    classes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+    ctx = mx.gpu()
+    mboxLoss = SSDMultiBoxLoss()
+
     def __init__(self):
-            classes = ('1', '2', '3', '4', '5', '6', '7', '8', '9')
-            width = 300
-            height = 300
-            self.batchSize = 2
-            self.ctx = mx.gpu()
+        self.net = JanetRes(classes=self.classes, use_bn=True)
+        self.net.initialize(ctx=self.ctx)
 
-            self.net = Janet(classes = ('1', '2', '3', '4', '5', '6', '7', '8', '9'))
-            self.net.initialize(ctx=self.ctx)
+        self.trainIter = image.ImageDetIter(batch_size=self.BATCH_SIZE, data_shape=(3, 300, 300),
+                                            path_imgrec='../DataX/annoTrainX.rec',
+                                            path_imgidx='../DataX/annoTrainX.idx',
+                                            path_imglist='../DataX/annoTrainX.lst',
+                                            path_root='../DataX/', shuffle=True, mean=True,
+                                            brightness=0.3, contrast=0.3, saturation=0.3, pca_noise=0.3, hue=0.3)
 
-            #generate anchors now to compute targets later
-            x = mx.nd.zeros(shape=(1, 3, 300, 300), ctx=self.ctx)
-            with autograd.train_mode():
-                _, _, anchors = self.net(x)
-            self.transform = SSDTrainTransform(width, height, anchors.as_in_context(mx.cpu()))
+        with autograd.train_mode():
+            _, _, anchors = self.net(mx.ndarray.zeros(shape=(self.BATCH_SIZE, 3, 300, 300), ctx=self.ctx))
+        self.T = TargetGenV1(anchors=anchors.as_in_context(mx.cpu()), height=300, width=300)
 
-
-            #Data
-            trainDataset = ImageRecordDataset(filename='DataX/annoTrainX.rec')
-            self.trainData = DataLoader(trainDataset.transform(self.transform),
-                                        self.batchSize, shuffle=True, last_batch='rollover')
-
-            #Training stuff
-            self.loss = SSDMultiBoxLoss()
-            self.trainer = gluon.Trainer(self.net.collect_params(), 'sgd',
-                                         {'learning_rate': 0.001, 'wd': 0.0005, 'momentum': 0.9})
+        self.net.collect_params().reset_ctx(self.ctx)
+        self.trainer = gluon.Trainer(self.net.collect_params(), 'sgd', {'learning_rate': 0.1, 'wd': 5e-4})
 
     def train(self):
-        num_epochs = 13
         ce_metric = mx.metric.Loss('CrossEntropy')
         smoothl1_metric = mx.metric.Loss('SmoothL1')
-
-        print('ookoko')
-        for epoch in range(num_epochs):
-            counter=0
+        for epoch in range(self.NUM_EPOCHS):
             print('Commencing epoch', epoch)
             tic = time()
+            self.trainIter.reset()
 
-            for i, batch in enumerate(self.trainData):
-                counter += 1
+            for i, batch in enumerate(self.trainIter):
+                X = batch.data[0].as_in_context(self.ctx)
+                Y = batch.label[0].as_in_context(self.ctx)
+
                 with autograd.record():
-                    cls_pred, box_pred, anchors = self.net(batch[0].as_in_context(mx.gpu()))
-                    clsTargets, bboxTargets = self.transform.generate(cls_pred, batch[1], batch[2])
-                    sumLoss, clsLoss, boxLoss = self.loss(cls_pred, box_pred, clsTargets, bboxTargets)
+                    '''Make Predictions'''
+                    clsPreds, bboxPreds, _ = self.net(X)
+                    clsTargets, bboxTargets = self.T.generateTargets(Y, clsPreds)
 
-                    if counter % 1 == 0:
+                    sumLoss, clsLoss, bboxLoss = self.mboxLoss(clsPreds,
+                                                               bboxPreds,
+                                                               clsTargets.as_in_context(self.ctx),
+                                                               bboxTargets.as_in_context(self.ctx))
+                    '''Compute Losses'''
+                    if (i+1) % 200 == 0:
                         print('B:{}, Loss:{:.3f}, \nClsLoss:{}, \nBboxLoss:{}\n\n'.format
-                              (i, mx.nd.mean(sumLoss[0]).asscalar(), clsLoss[0].asnumpy(), boxLoss[0].asnumpy()))
+                              (i, mx.nd.mean(sumLoss[0]).asscalar(), clsLoss[0].asnumpy(), bboxLoss[0].asnumpy()))
 
-                autograd.backward(sumLoss)
-                self.trainer.step(self.batchSize)
-                ce_metric.update(0, [l * self.batchSize for l in clsLoss])
-                smoothl1_metric.update(0, [l * self.batchSize for l in boxLoss])
+                    autograd.backward(sumLoss)
+                self.trainer.step(self.BATCH_SIZE)
+                ce_metric.update(0, [l * self.BATCH_SIZE for l in clsLoss])
+                smoothl1_metric.update(0, [l * self.BATCH_SIZE for l in bboxLoss])
 
-            try:
-                name1, loss1 = ce_metric.get()
-                name2, loss2 = smoothl1_metric.get()
-                print('[Epoch {}], Speed: {:.3f} samples/sec, {}={:.3f}, {}={:.3f}'
-                      .format(epoch, self.batchSize / (time() - tic), name1, loss1, name2, loss2))
-            except:
-                print('unexpecrted error')
-                pass
-            self.net.save_parameters('params/1X03Xnet'+str(epoch)+'.params')
+            name1, loss1 = ce_metric.get()
+            name2, loss2 = smoothl1_metric.get()
+            print('[Epoch {}], Speed: {:.3f} samples/sec, {}={:.3f}, {}={:.3f}'
+                  .format(epoch, self.BATCH_SIZE / (time() - tic), name1, loss1, name2, loss2))
+
+            self.net.save_parameters('../params/2X7' + 'Xnet' + str(epoch) + '.params')
 
 
 if __name__ == "__main__":
     T = Trainer()
     T.train()
-
 

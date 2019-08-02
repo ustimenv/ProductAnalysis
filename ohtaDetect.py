@@ -1,11 +1,7 @@
 import cv2
-import sys
-import numpy as np
-
-from imageTrans import *
 
 
-class Detector:
+class StandardDetector:
     def __init__(self):
         pass
 
@@ -15,7 +11,7 @@ class Detector:
         for c in contours:
             approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
             x, y, w, h = cv2.boundingRect(c)
-            if len(approx) == 0 or w < 60 or h < 30 or h > w or w>400 or h>200:
+            if len(approx) == 0 or w < 40 or h < 40 or w>400 or h>400:
                 continue
             #coordinates of the current bounding box
             x1 = x #- 40
