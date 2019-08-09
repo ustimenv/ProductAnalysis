@@ -41,7 +41,7 @@ class Detection:
 
             # track
             self.T.track(rois)
-            print('--', self.T.numObjects)
+            print('--', self.T.N)
 
             ###
             ImgUtils.show("Live", self.frame, 800, 0)

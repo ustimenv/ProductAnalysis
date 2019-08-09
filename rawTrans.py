@@ -13,12 +13,9 @@ from gluoncv.data import batchify
 class RawDetectionTrans:
     @staticmethod
     def transform(img):
-        #UNCOMMENT!!contrast = RawDetectionTrans.transformResize(img)
-
         contrast = img
-        contrast = RawDetectionTrans.extractChannel(contrast)[:, :, 2]
-        # contrast = RawDetectionTrans.transformMorph(contrast)
-        # contrast = RawDetectionTrans.transformThresh(contrast)
+        contrast = RawDetectionTrans.extractChannel(contrast)[:, :, 0]
+        contrast = RawDetectionTrans.transformThresh(contrast)
         return contrast
 
     @staticmethod
@@ -32,10 +29,11 @@ class RawDetectionTrans:
     @staticmethod
     def extractChannel(img):
         # channel = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        channel = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-        # channel = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        # channel = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
-        # channel = cv2.cvtColor(img, cv2.COLOR_BGR2LUV)
+        channel = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+
+        ##channel = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        ##channel = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        ##channel = cv2.cvtColor(img, cv2.COLOR_BGR2LUV)
         # channel = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
         return channel
 
@@ -43,7 +41,7 @@ class RawDetectionTrans:
 
     @staticmethod
     def transformResize(img):
-        return np.copy(img[:, 350:800])
+        return np.copy(img[:, 500:760])
 
     @staticmethod
     def transformMorph(img):
@@ -56,9 +54,8 @@ class RawDetectionTrans:
         return cv2.GaussianBlur(img, (5, 5), 0)
 
     @staticmethod
-    def transformThresh(img, thresh):
-        # contrast= cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, blockSize, C)
-        contrast = cv2.threshold(img, thresh, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+    def transformThresh(img):
+        contrast = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
         return contrast
 
     @staticmethod

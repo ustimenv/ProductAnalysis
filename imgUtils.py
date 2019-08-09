@@ -40,6 +40,15 @@ class ImgUtils:
         y2 = int(rect[3])+offset[3]
         cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 4)
 
+    @staticmethod
+    def drawCircle(centre, img, radius=6, colour=(0,0,255)):
+        cv2.circle(img=img, center=centre, radius=radius, thickness=4, color=colour)
+
+    @staticmethod
+    def putText(img, text, coords, xOffset=0, yOffset=0):
+        cv2.putText(img=img, text=text, org=(int(coords[0]+xOffset), int(coords[1]+yOffset)),
+                    fontFace=cv2.FONT_HERSHEY_PLAIN, thickness=1, lineType=cv2.LINE_4, fontScale=5, color=(0, 255, 255))
+
 
 if __name__ == "__main__":
     # SystemUtils.initDir('DataX', scaleFactor=5)

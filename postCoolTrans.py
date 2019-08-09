@@ -1,26 +1,17 @@
-import glob
-import os
-import cv2
-import sys
 import numpy as np
-from PIL import Image
-from PIL.ImagePath import Path
 
 from imgUtils import *
-from gluoncv.data import batchify
 
 
 class PostCoolTrans:
     @staticmethod
     def transform(img):
-        contrast = PostCoolTrans.transformResize(img)
-        contrast = PostCoolTrans.extractChannel(contrast)[:, :, 2]
+        contrast = PostCoolTrans.extractChannel(img)[:, :, 2]
         return contrast
 
     @staticmethod
     def transformWithThresh(img):
-        contrast = PostCoolTrans.transformResize(img)
-        contrast = PostCoolTrans.extractChannel(contrast)[:, :, 2]
+        contrast = PostCoolTrans.extractChannel(img)[:, :, 2]
         contrast = PostCoolTrans.transformThresh(contrast)
         return contrast
 
@@ -48,7 +39,8 @@ class PostCoolTrans:
 
     @staticmethod
     def transformResize(img):
-        return np.copy(img[:, 530:830])
+        return img[:, 530:830]
+        # return np.copy(img[:, 530:830])
 
     @staticmethod
     def transformMorph(img):

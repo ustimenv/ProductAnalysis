@@ -4,26 +4,21 @@ import numpy as np
 from imgUtils import ImgUtils
 from rawTrans import  RawDetectionTrans
 
+
 class RawDetector:
-    import cv2
-    import numpy as np
-
-    from imgUtils import ImgUtils
-    from postCoolTrans import PostCoolTrans as T, PostCoolTrans
-
     def __init__(self, detectionMode=0):
         self.detectionMode = detectionMode
-        self.Transformer = RawDetectionTrans()
-        self.expectedW = 300        # approxiamate pixel size of the objects we are expecting
+        self.Transformer = RawDetectionTrans
+        self.expectedW = 300                # approxiamate pixel size of the objects we are expecting
         self.expectedH = 300
 
-        if self.detectionMode == 0:  # detect contours
+        if self.detectionMode == 0:         # detect contours
             pass
-        else:                       # detect blobs
+        else:                               # detect blobs
             self.blobber = cv2.SimpleBlobDetector()
 
     def prepare(self, feed):
-        return self.Transformer.transformWithThresh(feed)
+        return self.Transformer.transform(feed)
 
     def resizeLiveFeed(self, feed):
         return self.Transformer.transformResize(feed)
@@ -75,11 +70,14 @@ class RawDetector:
 def rawTest():
     D = RawDetector(detectionMode=0)
     for i in range(6, 56):
-        img = cv2.imread('Raw/' + str(i) + '.png')
+        img = cv2.imread('raw/' + str(i) + '.png')
         imgX = RawDetectionTrans.transform(img)
-        img0 = RawDetectionTrans.transformThresh(imgX, 0)
-        img1 = RawDetectionTrans.transformThresh(imgX, 160)
-        img2 = RawDetectionTrans.transformThresh(imgX, 255)
+        # img0 = RawDetectionTrans.transformThresh(imgX)
+        # img1 = RawDetectionTrans.transformThresh(imgX)
+        # img2 = RawDetectionTrans.transformThresh(imgX)
+        img0 = imgX[:, :, 0]
+        img1 = imgX[:, :, 1]
+        img2 = imgX[:, :, 2]
 
         while True:
             ImgUtils.show('Before', img, 0, 0)
@@ -94,8 +92,7 @@ def rawTest():
             elif keyboard == ord('q'):
                 return
 
-if __name__ == "__main__":
-    # rawTest()
+def rawTestVideo():
     D = RawDetector(detectionMode=0)
     camera = cv2.VideoCapture()
     # s = 6
@@ -106,12 +103,17 @@ if __name__ == "__main__":
         _, feed = camera.read()
         if feed is None:
             continue
-        # feed = cv2.imread('pstcool/3.png')
-        # frame = D.getImgWithBoxes(feed)
-        feed = D.resizeLiveFeed(feed)
 
+        feed = D.resizeLiveFeed(feed)
         ImgUtils.show("Live", feed, 0, 0)
-        # ImgUtils.show("X", frame, 350, 0)
+
+        # frame = D.prepare(feed)
+        frame = D.getImgWithBoxes(np.copy(feed))
+        ImgUtils.show("WithBoxes", frame, 350, 0)
+
         keyboard = cv2.waitKey(30)
         if keyboard == 'q' or keyboard == 27:
             break
+
+if __name__ == "__main__":
+    rawTestVideo()

@@ -2,33 +2,22 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="221a6986-f449-4907-89d5-cab4a25560e1" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/vlad.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/globalImgTrans.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jafeat.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mainDetect.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mainMX.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ohtaTrans.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/postCoolDetect.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/postCoolTrans.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rawDetect.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rawTrans.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/setupFiles.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ProductTracker.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ProductTracker.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/detect.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/detectWrapper.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/networking.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/singletons.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transform.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/vlad.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/vlad.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SSDtrans.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/ohtaDetect.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/imageTrans.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/janTrainer.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/janet.py" beforeDir="false" afterPath="$PROJECT_DIR$/janet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/manager.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/predict.py" beforeDir="false" afterPath="$PROJECT_DIR$/predict.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/targetGen.py" beforeDir="false" afterPath="$PROJECT_DIR$/targetGen.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/imgUtils.py" beforeDir="false" afterPath="$PROJECT_DIR$/imgUtils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mainDetect.py" beforeDir="false" afterPath="$PROJECT_DIR$/mainDetect.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/postCoolDetect.py" beforeDir="false" afterPath="$PROJECT_DIR$/postCoolDetect.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/postCoolTrans.py" beforeDir="false" afterPath="$PROJECT_DIR$/postCoolTrans.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rawDetect.py" beforeDir="false" afterPath="$PROJECT_DIR$/rawDetect.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rawTrans.py" beforeDir="false" afterPath="$PROJECT_DIR$/rawTrans.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/track.py" beforeDir="false" afterPath="$PROJECT_DIR$/track.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/imgUtils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -67,8 +56,8 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.postCoolDetect">
-    <configuration name="janTrainer" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python.internalWrapper">
+    <configuration name="detect" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ProductTracker" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -80,7 +69,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/detect.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -89,7 +78,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="mainDetect" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="detectWrapper" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ProductTracker" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -101,7 +90,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mainDetect.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/detectWrapper.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -110,7 +99,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="manager" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="externalWrapper" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ProductTracker" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -122,7 +111,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mainMX.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/setup.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -131,7 +120,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="postCoolDetect" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="internalWrapper" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ProductTracker" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -143,7 +132,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/postCoolDetect.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -173,13 +162,20 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.detect" />
+      <item itemvalue="Python.externalWrapper" />
+      <item itemvalue="Python.internalWrapper" />
+      <item itemvalue="Python.rawDetect" />
+      <item itemvalue="Python.detectWrapper" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.postCoolDetect" />
+        <item itemvalue="Python.internalWrapper" />
+        <item itemvalue="Python.detectWrapper" />
+        <item itemvalue="Python.externalWrapper" />
+        <item itemvalue="Python.detect" />
         <item itemvalue="Python.rawDetect" />
-        <item itemvalue="Python.mainDetect" />
-        <item itemvalue="Python.manager" />
-        <item itemvalue="Python.janTrainer" />
       </list>
     </recent_temporary>
   </component>
