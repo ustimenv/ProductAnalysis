@@ -107,9 +107,9 @@ class __Tracker:
 
 
 class Tracker:
-    def __init__(self, movementDirection, killzone, lowerKillzone,  timeToDie, timeToLive):
+    def __init__(self, lowerKillzone, upperKillzone, leftKillzone, rightKillzone, timeToDie, timeToLive, startNum=0):
         self.nextId = 0                         # an ID number we will assign to the next object we detect(!=numObjects)
-        self.N = 0                              # actual number of objects that we have so far counted,
+        self.N = startNum                              # actual number of objects that we have so far counted,
                                                 # only incremented once we are sure we are seeing an actual object
 
         self.trackedCentroids = OrderedDict()   # objectID -> (centroidX, centroidY)
@@ -117,13 +117,15 @@ class Tracker:
 
         self.timeToDie = timeToDie              # consecutive frames till we stop tracking the object
         self.timeToLive = timeToLive            # consecutive frames till we start tracking the object
-        self.killzone = killzone                # border beyond which we do not accept any new detections
-        self.lowerKillzone = lowerKillzone
 
-        self.movementDirection = movementDirection  # +1 if products move up, -1 if down
+        self.upperKillzone = upperKillzone                # border beyond which we do not accept any new detections
+        self.lowerKillzone = lowerKillzone
+        self.leftKillzone = leftKillzone
+        self.rightKillzone = rightKillzone
 
     def register(self, centroid):
-        bufferCondition = self.lowerKillzone < centroid[1] < self.killzone
+        bufferCondition = self.lowerKillzone < centroid[1] < self.upperKillzone \
+                    and self.leftKillzone < centroid[0] < self.rightKillzone
 
         if bufferCondition:
             self.trackedCentroids[self.nextId] = centroid

@@ -2,22 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="221a6986-f449-4907-89d5-cab4a25560e1" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/detect.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/detectWrapper.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/networking.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/singletons.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/transform.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/vlad.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/vlad.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/detect.py" beforeDir="false" afterPath="$PROJECT_DIR$/detect.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/detectWrapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/detectWrapper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/imgUtils.py" beforeDir="false" afterPath="$PROJECT_DIR$/imgUtils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mainDetect.py" beforeDir="false" afterPath="$PROJECT_DIR$/mainDetect.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/postCoolDetect.py" beforeDir="false" afterPath="$PROJECT_DIR$/postCoolDetect.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/postCoolTrans.py" beforeDir="false" afterPath="$PROJECT_DIR$/postCoolTrans.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rawDetect.py" beforeDir="false" afterPath="$PROJECT_DIR$/rawDetect.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rawTrans.py" beforeDir="false" afterPath="$PROJECT_DIR$/rawTrans.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/networking.py" beforeDir="false" afterPath="$PROJECT_DIR$/networking.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/track.py" beforeDir="false" afterPath="$PROJECT_DIR$/track.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transform.py" beforeDir="false" afterPath="$PROJECT_DIR$/transform.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -56,7 +48,28 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.internalWrapper">
+  <component name="RunManager" selected="Python.detectWrapper">
+    <configuration name="detTest" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="ProductTracker" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/detTest.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="detect" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ProductTracker" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -141,41 +154,20 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="rawDetect" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="ProductTracker" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rawDetect.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <list>
       <item itemvalue="Python.detect" />
       <item itemvalue="Python.externalWrapper" />
       <item itemvalue="Python.internalWrapper" />
-      <item itemvalue="Python.rawDetect" />
       <item itemvalue="Python.detectWrapper" />
+      <item itemvalue="Python.detTest" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.internalWrapper" />
         <item itemvalue="Python.detectWrapper" />
-        <item itemvalue="Python.externalWrapper" />
         <item itemvalue="Python.detect" />
-        <item itemvalue="Python.rawDetect" />
+        <item itemvalue="Python.internalWrapper" />
+        <item itemvalue="Python.detTest" />
+        <item itemvalue="Python.externalWrapper" />
       </list>
     </recent_temporary>
   </component>
@@ -224,11 +216,5 @@
         </breakpoint>
       </default-breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="gt_boxes" />
-        <watch expression="bp" language="Python" />
-      </configuration>
-    </watches-manager>
   </component>
 </project>

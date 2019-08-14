@@ -45,9 +45,9 @@ class ImgUtils:
         cv2.circle(img=img, center=centre, radius=radius, thickness=4, color=colour)
 
     @staticmethod
-    def putText(img, text, coords, xOffset=0, yOffset=0):
+    def putText(img, text, coords, xOffset=0, yOffset=0, colour=(0, 255, 255)):
         cv2.putText(img=img, text=text, org=(int(coords[0]+xOffset), int(coords[1]+yOffset)),
-                    fontFace=cv2.FONT_HERSHEY_PLAIN, thickness=1, lineType=cv2.LINE_4, fontScale=5, color=(0, 255, 255))
+                    fontFace=cv2.FONT_HERSHEY_PLAIN, thickness=1, lineType=cv2.LINE_4, fontScale=5, color=colour)
 
 
 if __name__ == "__main__":
