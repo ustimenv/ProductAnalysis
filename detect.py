@@ -43,7 +43,7 @@ class Detector:
         for c in contours:
             approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
             x, y, w, h = cv2.boundingRect(c)
-            if len(approx) < 1 or w < self.expectedWidth*0.8 or h < self.expectedHeight*0.8 or w < 100:
+            if len(approx) < 1 or w < self.expectedWidth*0.6 or h < self.expectedHeight*0.6 :
                 continue
             x1 = x; x2 = x1 + w; y1 = y; y2 = y1 + h
             _rois = [(x1, y1, x2, y2)]
@@ -70,6 +70,7 @@ class Detector:
                 r = [xmin, y, xmax, y + self.expectedHeight + step]
                 y += (step + self.expectedHeight)
                 partitionedRois.append(r)
+                print(r)
         return partitionedRois
 
     def getImgWithBoxes(self, img):

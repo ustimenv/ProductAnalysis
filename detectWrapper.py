@@ -25,11 +25,11 @@ class DetectorWrapper:
                             'partioningRequired' : False
                     },
 
-        (1, 'postcool') : {'expectedWidth' : 150, 'expectedHeight'     : 150,     # detection params
+        (1, 'postcool') : {'expectedWidth' : 70, 'expectedHeight'     : 70,     # detection params
                            'transformationTarget'             : 'cool',  # select correct image transformations
                            'upperKillzone'  : 550, 'lowerKillzone' : 220,     # select correct tracking parameters
                            'rightKillzone'  : 3000, 'leftKillzone' : -3000,     # select correct tracking parameters
-                           'timeToDie' : 13, 'timeToLive'     : 13,
+                           'timeToDie' : 9, 'timeToLive'     : 3,
                            'partioningRequired': True
                           }
     }
@@ -92,7 +92,7 @@ class DetectorWrapper:
                     yPos = 0
                 X = self.D.transformer.transform(feed)
                 ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
-                # ImgUtils.show("Contrast", X, 400, 400)
+                ImgUtils.show("Contrast", X, 800, 00)
                 # ImgUtils.show("Live"+str(self.position), frame, 0, 0)
                 # ImgUtils.show("Contrast", X, 0, 500)
 
@@ -122,6 +122,6 @@ class DetectorWrapper:
 
 
 if __name__ == "__main__":
-    D = DetectorWrapper(lineNumber=1, position='raw', showFeed=True, samplingRate=10000000, run=False, port=-1, startNum=21)
+    D = DetectorWrapper(lineNumber=1, position='postcool', showFeed=True, samplingRate=10000000, run=False, port=-1, startNum=0)
     D.video()
     # D.slideshow()
