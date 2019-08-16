@@ -7,15 +7,18 @@ class SocketWriter:
         self.HOST = "127.0.0.1"
         self.PORT = destinationPort
 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.connect()
+
+    def connect(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.HOST, self.PORT))
 
-    def send(self, data):
-        try:
-            self.sock.sendall(bytes(data, "utf-8"))
-            return 0
-        except:
-            return data
+    def flush(self):
+        self.sock.close()
+        self.connect()
+
+    def write(self, data):
+        self.sock.sendall(bytes(data, "utf-8"))
 
     def __del__(self):
         self.sock.close()

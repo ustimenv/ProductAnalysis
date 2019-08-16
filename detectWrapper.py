@@ -1,3 +1,4 @@
+import logging
 
 import cv2
 import numpy as np
@@ -5,7 +6,7 @@ from detect import Detector
 from imgUtils import ImgUtils
 import time
 from networking import SocketWriter
-
+import sys
 INTMAX = 2**60
 
 class DetectorWrapper:
@@ -61,13 +62,17 @@ class DetectorWrapper:
         self.camera = cv2.VideoCapture()
         self.camera.open(cameraIp)
 
-    def collectSample(self, img, n):
+    def collectImageSample(self, img, n):
         cv2.imwrite(str(n) + '.png', img)
 
     def video(self):
         counter = 0
+        flushCounter = 0
         startTime = time.time()
         while True:
+            sys.stderr.flush()
+            sys.stdout.flush()
+
             _, feed = self.camera.read()
             if feed is None:
                 continue
@@ -75,14 +80,17 @@ class DetectorWrapper:
             curTime = time.time()
 
             if self.run and curTime - startTime >= self.samplingRate:
-                self.D.numObjects += self.writer.send(str(self.D.numObjects))
+                try:
+                    self.writer.write(str(self.D.numObjects))
+                    self.writer.flush()
+                except:
+                    print("______Critical error", file=sys.stderr)
                 startTime = curTime
 
             feed = self.D.resize(feed)
             frame = self.D.getImgWithBoxes(np.copy(feed))
             # self.collectSample(feed, counter)
-
-            print(self.D.numObjects)
+            # print(self.D.numObjects)
             if self.showFeed:
                 if self.position == "raw":
                     xPos = 0
@@ -90,9 +98,11 @@ class DetectorWrapper:
                 else:
                     xPos = 1600
                     yPos = 0
-                X = self.D.transformer.transform(feed)
                 ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
-                ImgUtils.show("Contrast", X, 800, 00)
+
+
+                # X = self.D.transformer.transform(feed)
+                # ImgUtils.show("Contrast", X, 800, 00)
                 # ImgUtils.show("Live"+str(self.position), frame, 0, 0)
                 # ImgUtils.show("Contrast", X, 0, 500)
 
@@ -101,6 +111,7 @@ class DetectorWrapper:
                 break
             elif keyboard == ord('q'):
                 return
+
         return self.D.tracker.N
 
     def slideshow(self):
@@ -120,6 +131,7 @@ class DetectorWrapper:
                 elif keyboard == ord('q'):
                     return
 
+# logging.basicConfig(filename="/home/vlad/pylog.log", format='%(asctime)s %(message)s', filemode='w')
 
 if __name__ == "__main__":
     D = DetectorWrapper(lineNumber=1, position='postcool', showFeed=True, samplingRate=10000000, run=False, port=-1, startNum=0)

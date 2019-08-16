@@ -53,7 +53,7 @@ class Detector:
 
     def _detectBlobs(self, frame, contrast,  **kwargs):
         keypoints = self.blobber.detect(contrast)
-        print(len(keypoints))
+        # print(len(keypoints))
         cv2.drawKeypoints(frame, keypoints, np.array([]), (255, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     def partitionRois(self, rois):
@@ -70,7 +70,7 @@ class Detector:
                 r = [xmin, y, xmax, y + self.expectedHeight + step]
                 y += (step + self.expectedHeight)
                 partitionedRois.append(r)
-                print(r)
+                # print(r)
         return partitionedRois
 
     def getImgWithBoxes(self, img):

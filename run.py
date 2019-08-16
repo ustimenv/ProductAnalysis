@@ -1,6 +1,9 @@
 import argparse
+import logging
 
 from detectWrapper import DetectorWrapper
+
+
 
 def parseArgs():
     parser = argparse.ArgumentParser()

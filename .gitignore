@@ -5,6 +5,7 @@ __pycache__/
 *.params
 *.png
 *.rec
+.idea/
 *.idx
 *.lst
 params/
@@ -117,3 +118,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+*.xml
