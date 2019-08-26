@@ -43,8 +43,13 @@ class Detector:
         for c in contours:
             approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
             x, y, w, h = cv2.boundingRect(c)
-            if len(approx) < 1 or w < self.expectedWidth*0.6 or h < self.expectedHeight*0.6 :
-                continue
+            if self.partioningRequired:     # like postbake
+                if len(approx) < 1 or w < self.expectedWidth*0.6 or h < self.expectedHeight*0.6:
+                    continue
+            else:                           # like raw
+                if len(approx) < 1 or w < self.expectedWidth*0.6 or h < self.expectedHeight*0.6 \
+                                   or w > self.expectedWidth*2 or h > self.expectedHeight*2 or w < 70:
+                    continue
             x1 = x; x2 = x1 + w; y1 = y; y2 = y1 + h
             _rois = [(x1, y1, x2, y2)]
             for roi in _rois:
@@ -56,7 +61,7 @@ class Detector:
         # print(len(keypoints))
         cv2.drawKeypoints(frame, keypoints, np.array([]), (255, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-    def partitionRois(self, rois):
+    def partitionRoisY(self, rois):
         partitionedRois = []
         for (xmin, ymin, xmax, ymax) in rois:
             h = ymax - ymin
@@ -70,7 +75,25 @@ class Detector:
                 r = [xmin, y, xmax, y + self.expectedHeight + step]
                 y += (step + self.expectedHeight)
                 partitionedRois.append(r)
-                # print(r)
+
+        return partitionedRois
+
+    def partitionRoisX(self, rois):
+        partitionedRois = []
+        for (xmin, ymin, xmax, ymax) in rois:
+            w = xmax - xmin
+            numParts = w // self.expectedWidth
+            if numParts < 1:
+                partitionedRois.append((xmin, ymin, xmax, ymax))
+                continue
+
+            step = (w % self.expectedWidth)
+            x = xmin
+            for i in range(0, numParts):
+                r = [x, ymin, x + self.expectedWidth + step, ymax]
+                x += (step + self.expectedWidth)
+                partitionedRois.append(r)
+
         return partitionedRois
 
     def getImgWithBoxes(self, img):
@@ -82,12 +105,16 @@ class Detector:
 
         if self.detectionMode == 0:
             rois = self._detectContours(contrast)
-            tracked = self.tracker.track(rois)
-            self.numObjects = self.tracker.N
+
             if self.partioningRequired:
-                partitionedRois = self.partitionRois(rois)
+                partitionedRois = self.partitionRoisX(rois)
+                partitionedRois = self.partitionRoisY(partitionedRois)
             else:
                 partitionedRois = rois
+
+            tracked = self.tracker.track(partitionedRois)
+            self.numObjects = self.tracker.N
+
             for roi in partitionedRois:
                 ImgUtils.drawRect(roi, img, offset=(xOffset, yOffset) * 2)
                 detectedCentroid = ImgUtils.getCentroid(roi)
@@ -95,9 +122,10 @@ class Detector:
 
             for objectId, centroid in tracked.items():
                 ImgUtils.drawCircle((centroid[0], centroid[1]), img)
-                ImgUtils.putText(coords=centroid, text=str(objectId), img=img, colour=(255, 0, 0))
+                ImgUtils.putText(coords=centroid, text=str(objectId%1000), img=img, colour=(255, 0, 0))
         else:
             img = self._detectBlobs(contrast)
+
         return img
 
 

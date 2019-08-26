@@ -9,28 +9,29 @@ from networking import SocketWriter
 import sys
 INTMAX = 2**60
 
+
 class DetectorWrapper:
     # (line, production stage) -> (ip address)
     cameras = \
         {
             (1, 'raw'     ) : 'rtsp://Operator:PHZOperator@10.150.10.155/1',
-            (1, 'postcool') : 'rtsp://Operator:PHZOperator@10.150.10.154/1'
+            (1, 'postbake') : 'rtsp://Operator:PHZOperator@10.150.10.154/1'
         }
     args = \
     {
-        (1, 'raw')      : {'expectedWidth': 140, 'expectedHeight': 100,        # detection params
+        (1, 'raw')      : {'expectedWidth': 180, 'expectedHeight': 130,        # detection params
                             'transformationTarget': 'raw',                      # select correct image transformations
                             'upperKillzone': INTMAX, 'lowerKillzone': -INTMAX,              # select correct tracking parameters
                             'rightKillzone': INTMAX+680, 'leftKillzone': 300-INTMAX,              # select correct tracking parameters
-                            'timeToDie': 5,      'timeToLive': 0,
+                            'timeToDie': 1,      'timeToLive': 0,
                             'partioningRequired' : False
                     },
 
-        (1, 'postcool') : {'expectedWidth' : 70, 'expectedHeight'     : 70,     # detection params
+        (1, 'postbake') : {'expectedWidth' : 120, 'expectedHeight'     : 120,     # detection params
                            'transformationTarget'             : 'cool',  # select correct image transformations
                            'upperKillzone'  : 550, 'lowerKillzone' : 220,     # select correct tracking parameters
                            'rightKillzone'  : 3000, 'leftKillzone' : -3000,     # select correct tracking parameters
-                           'timeToDie' : 9, 'timeToLive'     : 3,
+                           'timeToDie' : 1, 'timeToLive'     : 0,
                            'partioningRequired': True
                           }
     }
@@ -62,55 +63,69 @@ class DetectorWrapper:
         self.camera = cv2.VideoCapture()
         self.camera.open(cameraIp)
 
+        self.frameRate = 8
+
     def collectImageSample(self, img, n):
         cv2.imwrite(str(n) + '.png', img)
+
+
 
     def video(self):
         counter = 0
         flushCounter = 0
-        startTime = time.time()
+        writeTime = time.time()
+        saveTime = time.time()
+        prevTime = 0
         while True:
             sys.stderr.flush()
             sys.stdout.flush()
 
+            timeElapsed = time.time() - prevTime
             _, feed = self.camera.read()
             if feed is None:
                 continue
-            counter += 1
-            curTime = time.time()
 
-            if self.run and curTime - startTime >= self.samplingRate:
-                try:
-                    self.writer.write(str(self.D.numObjects))
-                    self.writer.flush()
-                except:
-                    print("______Critical error", file=sys.stderr)
-                startTime = curTime
+            if timeElapsed > 1.0/self.frameRate:
+                prevTime = time.time()
+                curTime = time.time()
 
-            feed = self.D.resize(feed)
-            frame = self.D.getImgWithBoxes(np.copy(feed))
-            # self.collectSample(feed, counter)
-            # print(self.D.numObjects)
-            if self.showFeed:
-                if self.position == "raw":
-                    xPos = 0
-                    yPos = 0
-                else:
-                    xPos = 1600
-                    yPos = 0
-                ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
+                if self.run and curTime - writeTime >= self.samplingRate:
+                    try:
+                        self.writer.write(str(self.D.numObjects))
+                        self.writer.flush()
+
+                    except:
+                        print("______Critical error", file=sys.stderr)
+                    writeTime = curTime
+                if time.time() - saveTime >= 60:
+                    counter += 1
+                    cv2.imwrite("Samples/"+str(self.position) + "|" + str(int(time.time())) + '.png', feed)
+                    saveTime = time.time()
+
+                feed = self.D.resize(feed)
+                frame = self.D.getImgWithBoxes(np.copy(feed))
+                # self.collectSample(feed, counter)
+                # print(self.D.numObjects)
+                if self.showFeed:
+                    if self.position == "raw":
+                        xPos = 0
+                        yPos = 0
+                    else:
+                        xPos = 1600
+                        yPos = 0
+                    ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
 
 
-                # X = self.D.transformer.transform(feed)
-                # ImgUtils.show("Contrast", X, 800, 00)
-                # ImgUtils.show("Live"+str(self.position), frame, 0, 0)
-                # ImgUtils.show("Contrast", X, 0, 500)
+                    X = self.D.transformer.transform(feed)
+                    # ImgUtils.show("Contrast", X, 800, 00)
+                    # ImgUtils.show("Live"+str(self.position), frame, 0, 0)
+                    # ImgUtils.show("Contrast", X, 0, 500)
 
-            keyboard = cv2.waitKey(30)
-            if keyboard == 27:
-                break
-            elif keyboard == ord('q'):
-                return
+                keyboard = cv2.waitKey(30)
+                if keyboard == 27:
+                    break
+                elif keyboard == ord('q'):
+                    return
 
         return self.D.tracker.N
 
@@ -134,6 +149,6 @@ class DetectorWrapper:
 # logging.basicConfig(filename="/home/vlad/pylog.log", format='%(asctime)s %(message)s', filemode='w')
 
 if __name__ == "__main__":
-    D = DetectorWrapper(lineNumber=1, position='postcool', showFeed=True, samplingRate=10000000, run=False, port=-1, startNum=0)
+    D = DetectorWrapper(lineNumber=1, position='raw', showFeed=True, samplingRate=10000000, run=False, port=-1, startNum=0)
     D.video()
-    # D.slideshow()
+    # D.test()

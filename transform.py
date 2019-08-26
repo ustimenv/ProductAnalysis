@@ -18,9 +18,19 @@ class Transformer:
 
     def transform(self, img):
         if self.transformationTarget == 'raw':
-            contrast = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)[:, :, 1]
-            contrast = cv2.inRange(contrast, 80, 112)
+            contrast = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)[:, :, 2]
             contrast = cv2.bitwise_not(contrast)
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
+
+            contrast = cv2.threshold(src=contrast, type=cv2.THRESH_TOZERO, thresh=210, maxval=255)[1]
+            # contrast = cv2.morphologyEx(self.transformBlur(contrast), cv2.MORPH_ERODE, kernel, iterations=1)
+
+
+            # contrast = cv2.inRange(contrast, 165, 255)
+
+            # contrast = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)[:, :, 1]
+            # contrast = cv2.inRange(contrast, 80, 112)
+            # contrast = cv2.bitwise_not(contrast)
             #
             # contrast = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)[:, :, 2]
             # contrast3 = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)[:, :, 1]
@@ -45,7 +55,7 @@ class Transformer:
     def transformResize(self, img):
         if self.transformationTarget == 'raw':
             # return img[420:620, :]
-            return img[440:620, 220:-550]
+            return img[440:620, 240:-640]
         elif self.transformationTarget == 'cool':
             return img[:, 530:830]
 
