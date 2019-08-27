@@ -25,7 +25,6 @@ class SocketWriter:
 
 
 class SocketListener:
-
     def __init__(self, destinationPort=50001):
         self.HOST = "127.0.0.1"
         self.PORT = destinationPort

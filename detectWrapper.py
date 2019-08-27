@@ -68,10 +68,9 @@ class DetectorWrapper:
     def collectImageSample(self, img, n):
         cv2.imwrite(str(n) + '.png', img)
 
-
-
     def video(self):
         counter = 0
+
         flushCounter = 0
         writeTime = time.time()
         saveTime = time.time()
@@ -93,11 +92,10 @@ class DetectorWrapper:
                     try:
                         self.writer.write(str(self.D.numObjects))
                         self.writer.flush()
-
                     except:
                         print("______Critical error", file=sys.stderr)
                     writeTime = curTime
-                if time.time() - saveTime >= 60:
+                if time.time() - saveTime >= 600: #600=save every 10 minutes
                     counter += 1
                     cv2.imwrite("Samples/"+str(self.position) + "|" + str(int(time.time())) + '.png', feed)
                     saveTime = time.time()
@@ -116,7 +114,7 @@ class DetectorWrapper:
                     ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
 
 
-                    X = self.D.transformer.transform(feed)
+                    # X = self.D.transformer.transform(feed)
                     # ImgUtils.show("Contrast", X, 800, 00)
                     # ImgUtils.show("Live"+str(self.position), frame, 0, 0)
                     # ImgUtils.show("Contrast", X, 0, 500)

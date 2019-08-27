@@ -54,8 +54,8 @@ class Transformer:
 
     def transformResize(self, img):
         if self.transformationTarget == 'raw':
-            # return img[420:620, :]
-            return img[440:620, 240:-640]
+            return img[300:820, 250:750]
+            # return img[440:620, 240:-640]
         elif self.transformationTarget == 'cool':
             return img[:, 530:830]
 
