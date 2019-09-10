@@ -47,8 +47,8 @@ class Detector:
                 if len(approx) < 1 or w < self.expectedWidth*0.6 or h < self.expectedHeight*0.6:
                     continue
             else:                           # like raw
-                if len(approx) < 1 or w < self.expectedWidth*0.6 or h < self.expectedHeight*0.6 \
-                                   or w > self.expectedWidth*2 or h > self.expectedHeight*2 or w < 70:
+                if len(approx) < 1 or w < self.expectedWidth*0.7 or h < self.expectedHeight*0.7 \
+                                   or w > self.expectedWidth*1.4 or h > self.expectedHeight*2 or w < 70:
                     continue
             x1 = x; x2 = x1 + w; y1 = y; y2 = y1 + h
             _rois = [(x1, y1, x2, y2)]

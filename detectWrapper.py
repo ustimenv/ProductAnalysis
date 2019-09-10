@@ -111,11 +111,11 @@ class DetectorWrapper:
                     else:
                         xPos = 1600
                         yPos = 0
-                    ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
+                   # ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
 
 
-                    # X = self.D.transformer.transform(feed)
-                    # ImgUtils.show("Contrast", X, 800, 00)
+                    #X = self.D.transformer.transform(feed)
+                    #ImgUtils.show("Contrast", X, 0, 600)
                     # ImgUtils.show("Live"+str(self.position), frame, 0, 0)
                     # ImgUtils.show("Contrast", X, 0, 500)
 

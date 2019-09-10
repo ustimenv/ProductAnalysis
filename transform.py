@@ -22,6 +22,7 @@ class Transformer:
             contrast = cv2.bitwise_not(contrast)
             kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
 
+            contrast = self.transformBlur(contrast)
             contrast = cv2.threshold(src=contrast, type=cv2.THRESH_TOZERO, thresh=210, maxval=255)[1]
             # contrast = cv2.morphologyEx(self.transformBlur(contrast), cv2.MORPH_ERODE, kernel, iterations=1)
 
@@ -54,10 +55,13 @@ class Transformer:
 
     def transformResize(self, img):
         if self.transformationTarget == 'raw':
-            return img[300:820, 250:750]
+            return img[450:620, 250:700]
+            # return img[300:820, 250:700]
+
+
             # return img[440:620, 240:-640]
         elif self.transformationTarget == 'cool':
-            return img[:, 530:830]
+            return img[250:, 530:830]
 
     def transformMorph(self, img):
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))

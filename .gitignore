@@ -5,7 +5,7 @@ __pycache__/
 *.params
 *.png
 *.rec
-.idea/
+.idea/**
 *.idx
 *.lst
 params/
