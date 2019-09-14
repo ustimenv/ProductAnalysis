@@ -20,19 +20,19 @@ class DetectorWrapper:
     args = \
     {
         (1, 'raw')      : {'expectedWidth': 180, 'expectedHeight': 130,        # detection params
-                            'transformationTarget': 'raw',                      # select correct image transformations
+                            'target': 'raw',                      # select correct image transformations
                             'upperKillzone': INTMAX, 'lowerKillzone': -INTMAX,              # select correct tracking parameters
                             'rightKillzone': INTMAX+680, 'leftKillzone': 300-INTMAX,              # select correct tracking parameters
                             'timeToDie': 1,      'timeToLive': 0,
-                            'partioningRequired' : False
+                            'partioningRequired' : False, 'roiTrackingMode' : True
                     },
 
         (1, 'postbake') : {'expectedWidth' : 120, 'expectedHeight'     : 120,     # detection params
-                           'transformationTarget'             : 'cool',  # select correct image transformations
+                           'target'        : 'postbake',        # select correct image transformations
                            'upperKillzone'  : 550, 'lowerKillzone' : 220,     # select correct tracking parameters
                            'rightKillzone'  : 3000, 'leftKillzone' : -3000,     # select correct tracking parameters
                            'timeToDie' : 1, 'timeToLive'     : 0,
-                           'partioningRequired': True
+                           'partioningRequired': True, 'roiTrackingMode' : False
                           }
     }
 
@@ -63,10 +63,10 @@ class DetectorWrapper:
         self.camera = cv2.VideoCapture()
         self.camera.open(cameraIp)
 
-        self.frameRate = 8
+        self.frameRate = 10
 
     def collectImageSample(self, img, n):
-        cv2.imwrite(str(n) + '.png', img)
+        cv2.imwrite('Raw/1/'+str(n) + '.png', img)
 
     def video(self):
         counter = 0
@@ -95,15 +95,15 @@ class DetectorWrapper:
                     except:
                         print("______Critical error", file=sys.stderr)
                     writeTime = curTime
-                if time.time() - saveTime >= 600: #600=save every 10 minutes
+                if time.time() - saveTime >= 600 or True: #600=save every 10 minutes
                     counter += 1
-                    cv2.imwrite("Samples/"+str(self.position) + "|" + str(int(time.time())) + '.png', feed)
+                    # self.collectImageSample(feed, counter)
+
+                    # cv2.imwrite("Samples/"+str(self.position) + "|" + str(int(time.time())) + '.png', feed)
                     saveTime = time.time()
 
                 feed = self.D.resize(feed)
                 frame = self.D.getImgWithBoxes(np.copy(feed))
-                # self.collectSample(feed, counter)
-                # print(self.D.numObjects)
                 if self.showFeed:
                     if self.position == "raw":
                         xPos = 0
@@ -111,11 +111,10 @@ class DetectorWrapper:
                     else:
                         xPos = 1600
                         yPos = 0
-                   # ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
 
-
-                    #X = self.D.transformer.transform(feed)
-                    #ImgUtils.show("Contrast", X, 0, 600)
+                    ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
+                    X = self.D.transformer.transform(feed)
+                    ImgUtils.show("Contrast", X, 0, 600)
                     # ImgUtils.show("Live"+str(self.position), frame, 0, 0)
                     # ImgUtils.show("Contrast", X, 0, 500)
 
@@ -124,19 +123,18 @@ class DetectorWrapper:
                     break
                 elif keyboard == ord('q'):
                     return
-
         return self.D.tracker.N
 
     def slideshow(self):
-        for i in range(1, 560):
-            img = cv2.imread('raw/4/' + str(i) + '.png')
+        for i in range(1, 1291):
+            img = cv2.imread('Raw/1/' + str(i) + '.png')
             img = self.D.transformer.transformResize(img)
             contrast = self.D.transform(np.copy(img))
             img = self.D.getImgWithBoxes(img)
 
             while True:
                 ImgUtils.show('Img', img, 0, 0)
-                ImgUtils.show('Contrast', contrast, 1000, 0)
+                ImgUtils.show('Contrast', contrast, 00, 500)
 
                 keyboard = cv2.waitKey(30)
                 if keyboard == 27:
@@ -144,9 +142,8 @@ class DetectorWrapper:
                 elif keyboard == ord('q'):
                     return
 
-# logging.basicConfig(filename="/home/vlad/pylog.log", format='%(asctime)s %(message)s', filemode='w')
 
 if __name__ == "__main__":
     D = DetectorWrapper(lineNumber=1, position='raw', showFeed=True, samplingRate=10000000, run=False, port=-1, startNum=0)
     D.video()
-    # D.test()
+    # D.slideshow()

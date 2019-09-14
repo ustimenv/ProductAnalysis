@@ -49,6 +49,15 @@ class ImgUtils:
         cv2.putText(img=img, text=text, org=(int(coords[0]+xOffset), int(coords[1]+yOffset)),
                     fontFace=cv2.FONT_HERSHEY_PLAIN, thickness=1, lineType=cv2.LINE_4, fontScale=5, color=colour)
 
+    @staticmethod
+    def returnUnchanged(x):
+        return x
+
+    @staticmethod
+    def circleToRectabgle(center, radius):
+        cX = int(center[0]); cY = int(center[1]); r = int(radius)
+        xmin = cX-r; ymin = cY-r; xmax = cX + r; ymax = cY +r
+        return xmin, ymin, xmax, ymax
 
 if __name__ == "__main__":
     # SystemUtils.initDir('DataX', scaleFactor=5)
