@@ -35,7 +35,7 @@ class Transformer:
         elif self.transformationTarget == 'postbake':
             contrast = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)[:, :, 2]
             contrast = cv2.medianBlur(contrast, 7, 5)
-            contrast = self.transformThresh(contrast)
+            contrast = cv2.threshold(src=contrast, maxval=255, thresh=70, type=cv2.THRESH_BINARY)[1]
         else:
             raise NotImplemented
         return contrast

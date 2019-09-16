@@ -100,7 +100,7 @@ class Detector:
             approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
             x, y, w, h = cv2.boundingRect(c)
             if len(approx) < 1 or w < self.expectedWidth*0.7 or h < self.expectedHeight*0.7 or\
-                    w > self.expectedWidth*1.4 or h > self.expectedHeight*2 or w < 70:
+                    (w > self.expectedWidth*1.2 and h > self.expectedHeight*1.4) or w < 70:
                 continue
             x1 = x; x2 = x1 + w; y1 = y; y2 = y1 + h
             rois.append([x1, y1, x2, y2])
@@ -122,8 +122,10 @@ class Detector:
                 cv2.circle(img, center, 1, (0, 100, 100), 3)
                 radius = i[2]
                 print(radius)
-                cv2.circle(img, center, radius, (255, 0, 255), 3)
-                roisRect.append(ImgUtils.circleToRectabgle(center, radius))
+                if 60 < radius < 150:
+                    cv2.circle(img, center, radius, (255, 0, 255), 3)
+                    roi = ImgUtils.circleToRectabgle(center, radius)
+                    roisRect.append(roi)
         return roisRect
 
 

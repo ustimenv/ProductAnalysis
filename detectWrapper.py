@@ -15,7 +15,8 @@ class DetectorWrapper:
     cameras = \
         {
             (1, 'raw'     ) : 'rtsp://Operator:PHZOperator@10.150.10.155/1',
-            (1, 'postbake') : 'rtsp://Operator:PHZOperator@10.150.10.154/1'
+            (1, 'postbake') : 'rtsp://Operator:PHZOperator@10.150.10.154/1',
+            (1, 'postbakeDebug') : 'rtsp://Operator:PHZOperator@10.150.10.153/1'
         }
     args = \
     {
@@ -28,6 +29,13 @@ class DetectorWrapper:
                     },
 
         (1, 'postbake') : {'expectedWidth' : 120, 'expectedHeight'     : 120,     # detection params
+                           'target'        : 'postbake',        # select correct image transformations
+                           'upperKillzone'  : 550, 'lowerKillzone' : 220,     # select correct tracking parameters
+                           'rightKillzone'  : 3000, 'leftKillzone' : -3000,     # select correct tracking parameters
+                           'timeToDie' : 2, 'timeToLive'     : 0,
+                           'partioningRequired': True, 'roiTrackingMode' : False},
+
+        (1, 'postbakeDebug') : {'expectedWidth' : 120, 'expectedHeight'     : 120,     # detection params
                            'target'        : 'postbake',        # select correct image transformations
                            'upperKillzone'  : 550, 'lowerKillzone' : 220,     # select correct tracking parameters
                            'rightKillzone'  : 3000, 'leftKillzone' : -3000,     # select correct tracking parameters
@@ -91,6 +99,7 @@ class DetectorWrapper:
                 if self.run and curTime - writeTime >= self.samplingRate:
                     try:
                         self.writer.write(str(self.D.numObjects))
+                        self.D.numObjects = 0
                         self.writer.flush()
                     except:
                         print("______Critical error", file=sys.stderr)
@@ -98,7 +107,6 @@ class DetectorWrapper:
                 if time.time() - saveTime >= 600 or True: #600=save every 10 minutes
                     counter += 1
                     # self.collectImageSample(feed, counter)
-
                     # cv2.imwrite("Samples/"+str(self.position) + "|" + str(int(time.time())) + '.png', feed)
                     saveTime = time.time()
 
@@ -115,15 +123,12 @@ class DetectorWrapper:
                     ImgUtils.show("Live"+str(self.position), frame, xPos, yPos)
                     X = self.D.transformer.transform(feed)
                     ImgUtils.show("Contrast", X, 0, 600)
-                    # ImgUtils.show("Live"+str(self.position), frame, 0, 0)
-                    # ImgUtils.show("Contrast", X, 0, 500)
-
+                # print(self.D.numObjects)
                 keyboard = cv2.waitKey(30)
                 if keyboard == 27:
                     break
                 elif keyboard == ord('q'):
                     return
-        return self.D.tracker.N
 
     def slideshow(self):
         for i in range(1, 1291):
@@ -142,8 +147,23 @@ class DetectorWrapper:
                 elif keyboard == ord('q'):
                     return
 
+    def testCamera(self):
+        while True:
+            _, feed = self.camera.read()
+            if feed is None:
+                continue
+            ImgUtils.show('Img', feed, 0, 0)
+
+            keyboard = cv2.waitKey(30)
+            if keyboard == 27:
+                break
+            elif keyboard == ord('q'):
+                return
+
 
 if __name__ == "__main__":
-    D = DetectorWrapper(lineNumber=1, position='raw', showFeed=True, samplingRate=10000000, run=False, port=-1, startNum=0)
+    D = DetectorWrapper(lineNumber=1, position='postbake', showFeed=True, samplingRate=10000000, run=False, port=-1, startNum=0)
+    # D.testCamera()
     D.video()
+
     # D.slideshow()
