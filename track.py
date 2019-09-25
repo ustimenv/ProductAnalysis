@@ -1,9 +1,10 @@
-from scipy.spatial.distance import cdist
-from scipy.optimize import linear_sum_assignment
-import cv2
 from collections import OrderedDict
+
 import numpy as np
+from scipy.spatial.distance import cdist
+
 from imgUtils import ImgUtils
+
 
 # we track based only  on the y-ordinate: the conveyor is moving vertically so x-displacement is meaningless
 # with PostCool, y decreases,
@@ -12,9 +13,9 @@ from imgUtils import ImgUtils
 
 class Tracker:
     def __init__(self, lowerKillzone, upperKillzone, leftKillzone, rightKillzone, timeToDie, timeToLive,
-                 roiTrackingMode, startNum=0):
+                 roiTrackingMode):
         self.nextId = 0                         # an ID number we will assign to the next object we detect(!=numObjects)
-        self.N = startNum                              # actual number of objects that we have so far counted,
+        self.N = 0                              # actual number of objects that we have so far counted,
                                                 # only incremented once we are sure we are seeing an actual object
 
         self.trackedCentroids = OrderedDict()   # objectID -> (centroidX, centroidY)
