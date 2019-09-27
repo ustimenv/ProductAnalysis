@@ -18,7 +18,11 @@ class DetectorWrapper:
             (1, 'postbakeDebug') : 'rtsp://Operator:PHZOperator@10.150.10.153/1'
         }
 
+<<<<<<< HEAD
     def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, frameRate=16, guiMode=False):
+=======
+    def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, frameRate=20, guiMode=False):
+>>>>>>> origin/master
         """
         :param lineNumber: production line this detector instance is looking at
         :param positionOnLine:  production stage, either raw dough or straight out of the oven
@@ -58,7 +62,11 @@ class DetectorWrapper:
                 prevTime = time.time()
                 curTime = time.time()
 
+<<<<<<< HEAD
                 if not self.guiMode and curTime - writeTime >= self.samplingPeriod:
+=======
+                if self.guiMode and curTime - writeTime >= self.samplingPeriod:
+>>>>>>> origin/master
                     try:
                         self.writer.write(str(self.D.numObjects-previousN))
                         previousN = self.D.numObjects
