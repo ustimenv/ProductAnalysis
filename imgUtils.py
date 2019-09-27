@@ -1,4 +1,5 @@
 import cv2
+import numpy
 from skimage.measure import compare_ssim
 
 
@@ -58,6 +59,21 @@ class ImgUtils:
         cX = int(center[0]); cY = int(center[1]); r = int(radius)
         xmin = cX-r; ymin = cY-r; xmax = cX + r; ymax = cY +r
         return xmin, ymin, xmax, ymax
+
+    @staticmethod
+    def showLines(img, lines):
+        if lines is not None:
+            for line in lines:
+                rho = line[0][0]
+                theta = line[0][1]
+                a = numpy.math.cos(theta)
+                b = numpy.math.sin(theta)
+                x0 = a * rho
+                y0 = b * rho
+                pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
+                pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
+                cv2.line(img, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
+        return img
 
 if __name__ == "__main__":
     # SystemUtils.initDir('DataX', scaleFactor=5)
