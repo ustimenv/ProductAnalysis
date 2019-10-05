@@ -1,8 +1,15 @@
 import glob
 from os import path
 from subprocess import call
+import numpy as np
+from PIL import Image
+from numpy import hstack
 
 import cv2
+from numpy.distutils.system_info import x11_info
+
+
+from imgUtils import ImgUtils
 
 
 class SystemUtils:
@@ -36,7 +43,6 @@ class SystemUtils:
         C = w
         D = h
         # concat id and bboxes
-        from numpy import hstack
         labels = hstack((ids.reshape(-1, 1), boxes)).astype('float')
         if normaliseBboxes:
             labels[:, (1, 3)] /= float(w)
@@ -63,73 +69,23 @@ class SystemUtils:
                 else:   #failsafe
                     elemsByDir[category]=1
 
-
     @staticmethod
-    def initDir(topDirName, scaleFactor=5):
-        for i in range(1, 10):
-            call('mkdir %s/%s' %(topDirName, str(i)), shell=True)
-        SystemUtils.copySome(topDirName, scaleFactor)
-        print('File moved')
-        SystemUtils.initLST(topDirName)
-        print('LST complete')
-        SystemUtils.initRec(topDirName)
-        print('REC complete')
-
-    @staticmethod
-    def initLST(topDirName):  # (xmin, ymin, xmax, ymax)
-        bbTargets = {'1': (70, 90, 250, 170),  # sochen yagodny
-                     '2': (70, 90, 250, 170),  # sochen tvorog
-                     '3': (70, 90, 250, 190),  # strudel vishnya+
-                     '4': (70, 90, 250, 190),  # strudel malina+
-                     '5': (50, 100, 255, 200),  # sochen yagodnya+
-                     '6': (90, 100, 230, 200),  # vatrushki +
-                     '7': (40, 60, 280, 230),  # novomosk +
-                     '8': (50, 100, 260, 190),  # lakomka +
-                     '9': (70, 100, 240, 210)}  # korj+
-
-        bbTargomente = {'1': [122322.0, 190281.33333333334, 547725.5, 392778.3333333333],
-                        '2': [108154.0, 180342.0, 565860.5, 414921.0],
-                        '3': [14347.0, 176526.0, 644355.0, 536023.0],
-                        '4': [14477.0, 181667.0, 657200.0, 532675.5],
-                        '5': [141348.0, 205541.5, 572919.5, 405641.0],
-                        '6': [11836.5, 175868.0, 640601.0, 503967.0],
-                        '7': [13920.166666666668, 134374.5, 611991.6666666666, 613755.0],
-                        '9': [34008.5, 170826.0, 597611.0, 462383.0],
-                        '8': [125267.0, 202924.0, 573527.0, 424928.0]}
-
-        numElems = {'1': 2009, '2': 2054, '3': 2149, '4': 2193, '5': 2120, '6': 2150, '7': 2154, '8': 2147, '9': 2061}
-
-        xTargets = {'1': (65, 105, 260, 190),
-                    '2': (65, 100, 260, 190),
-                    '3': (70, 90, 250, 180),
-                    '4': (70, 90, 250, 180),
-                    '5': (65, 110, 260, 180),
-                    '6': (96, 100, 230, 200),
-                    '7': (60, 80, 270, 230),
-                    '8': (65, 110, 260, 180),
-                    '9': (95, 90, 250, 200)
-                    }
-
-        import numpy as np
-
-        with open('%s/annoTrainX.lst' % (topDirName), 'w') as fw:
+    def initLST(topDirName, lstName):             # (xmin, ymin, xmax, ymax)
+        with open('%s/%sx.lst' % (topDirName, lstName), 'w') as fw:
             counter = 0
-
-            for fullPath in glob.glob('%s/*/*.png' % (topDirName), recursive=True):
-                # print(fullPath)
-                dirName = fullPath.split('/')[1]
-
+            for fullPath in glob.glob('/home/vlad/Work/1/MLworkDir/%s/*/**.png' % lstName, recursive=True):
                 counter += 1
+                dirName = fullPath.split('/')[-2]
 
-                img = cv2.imread(fullPath)
-                fullPath = fullPath[len(topDirName)+1:]
-                # print(fullPath)
-                if img is None:
+                gmi, bbox = SystemUtils.pad(cv2.imread(fullPath))
+                if gmi is None:
                     continue
 
+                cv2.imwrite(fullPath, gmi)
+
                 line = SystemUtils.writeLSTLine(fullPath,
-                                                img.shape,
-                                                np.array([xTargets[dirName]], ),
+                                                gmi.shape,
+                                                np.array([bbox], ),
                                                 np.array([int(dirName)]),
                                                 counter, normaliseBboxes=True)
                 print(line)
@@ -161,3 +117,75 @@ class SystemUtils:
                 # print(numComponent)
                 if int(numComponent) % scaleFactor == 0:
                     call(command %(category, filename, topDirName, category), shell=True)
+
+
+
+    @staticmethod
+    def copySomeV2(srcDirName, trainDirName, testDirName, xThresh, yThresh, trainToTestRatio):
+        counter = 0
+        command = "cp %s %s/%s"
+
+        for filename in glob.glob(srcDirName+"/**.png"):
+            img = cv2.imread(filename=filename)
+            if img is None:
+                continue
+
+            if img.shape[0] < yThresh or img.shape[1] < xThresh:
+                continue
+
+            counter += 1
+            imgName = filename.split('/')[-1]
+
+            if counter % trainToTestRatio == 0:
+                call(command % (filename, testDirName, imgName), shell=True)
+            else:
+                call(command % (filename, trainDirName, imgName), shell=True)
+
+
+    @staticmethod
+    def pad(img, newDim=300):
+        h, w, _ = img.shape
+
+        try:
+            gmi = cv2.copyMakeBorder(src=img, top=0, bottom=newDim-h,
+                                                 left=0, right=newDim-w, borderType=cv2.BORDER_CONSTANT)
+        except:
+            # gmi = cv2.resize(img, dsize=(newDim, newDim))
+            gmi = None
+            print('error resizing')
+        return gmi, (0, 0, w, h)
+
+    # @staticmethod
+    # def padAll(path='/home/vlad/Work/1/MLworkDir/', xThresh=140, yThresh=140):
+    #     path = path+'*/**/*.png'
+    #     nDeleted=0
+    #     for imgPath in glob.glob(path, recursive=False):
+    #         img = cv2.imread(imgPath)
+    #         h, w, _ = img.shape
+    #         if w < xThresh or h < yThresh:
+    #             call('rm %s' % imgPath, shell=True)
+    #             nDeleted += 1
+    #             continue
+    #
+    #         img = SystemUtils.pad(img, 300)[0]
+    #         if img is None:
+    #             call('rm %s' % imgPath, shell=True)
+    #             nDeleted += 1
+    #         else:
+    #             cv2.imwrite(filename=imgPath, img=img)
+    #
+    #     print('Deleted Total: ', nDeleted)
+
+if __name__ == "__main__":
+    # SystemUtils.initLST('/home/vlad/Work/1/MLworkDir', 'Train')
+    # SystemUtils.initLST('/home/vlad/Work/1/MLworkDir', 'Test')
+    pass
+    # SystemUtils.copySomeV2("/home/vlad/Work/1/raw/UnitSamples",
+    #                         "/home/vlad/Work/1/Train/0",
+    #                         "/home/vlad/Work/1/Test/0",
+    #                         140, 140, 10)
+    #
+    # SystemUtils.copySomeV2("/home/vlad/Work/1/postbake/UnitSamples",
+    #                         "/home/vlad/Work/1/Train/1",
+    #                         "/home/vlad/Work/1/Test/1",
+    #                         140, 140, 10)

@@ -4,7 +4,6 @@ import os
 from PIL import Image
 from PIL.ImagePath import Path
 
-from ohtaTrans import StandardDetectionTrans
 from imgUtils import *
 
 
@@ -40,12 +39,6 @@ class GlobImgTrans:
             resized = cv2.resize(image, dsize=dims)
             cv2.imwrite(fullName, resized)
 
-    @staticmethod
-    def resizeGlobal():
-
-        for imName in glob.glob('**/*.png', recursive=True):
-            StandardDetectionTrans.resizeCustom(imName)
-
 
     @staticmethod
     def padGlob(padDims=300):
@@ -61,9 +54,9 @@ class GlobImgTrans:
                 totalNum += 1
             averageX = int(totalX / totalNum)
             averageY = int(totalY / totalNum)
-            if averageX > xMax:
+            if averageX > padDims:
                 xMax = averageX
-            if averageY > yMax:
+            if averageY > padDims:
                 yMax = averageY
 
 
@@ -79,25 +72,6 @@ class GlobImgTrans:
                 roiTotal[i]+=roi[i]
         return [r / len(rois) for r in roiTotal]
 
-    @staticmethod
-    def detect(imgName):
-        img = cv2.imread(imgName)
-        contrast = StandardDetectionTrans.prepareRefinedMono(img)
-
-        contours, h = cv2.findContours(contrast, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        currentRois = []
-        for c in contours:
-            approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
-            x, y, w, h = cv2.boundingRect(c)
-            if len(approx) == 0 or w < 60 or h < 60 or h > w:
-                continue
-            # coordinates of the current bounding box
-            x1 = x #- 40
-            x2 = x1 + w# + 60
-            y1 = y #- 20
-            y2 = y1 + h #+ 50
-            currentRois.append((x1, y1, x2, y2))
-        return currentRois
 
     @staticmethod
     def averageRoiSize():
@@ -111,3 +85,27 @@ class GlobImgTrans:
                         roisByDir[category][i]+=roi[i]
                 else:   #failsafe
                     roisByDir[category]=roi
+
+    @staticmethod
+    def padGlobV2(padDims=300):
+        for filename in glob.glob('/home/vlad/Work/1/Train/1/**', recursive=False):
+
+            img = cv2.imread(filename)
+
+            imgName = filename.split('/')[-1]
+            h, w, _ = img.shape
+            gmi = cv2.copyMakeBorder(img, top=300-h, bottom=300-h,
+                                     left=300-w, right=300-w,
+                                     borderType=cv2.BORDER_CONSTANT)
+
+            while True:
+                ImgUtils.show('Orig', img, 0, 0)
+                ImgUtils.show('Then', gmi, 0, 400)
+                key = cv2.waitKey(13)
+                if key == ord('q'):
+                    return
+                elif key == ord('v'):
+                    break
+
+if __name__ == "__main__":
+    GlobImgTrans.padGlobV2()

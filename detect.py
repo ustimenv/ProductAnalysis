@@ -15,7 +15,7 @@ class Detector:
         self.numObjects = -1
         self.tracker = Tracker(**kwargs)
 
-        self.counter = 113
+        self.counter = 10000
         self.roiX1, self.roiY1, self.roiX2, self.roiY2 = initialRoi
 
     def transform(self, feed):
@@ -30,6 +30,8 @@ class Detector:
         self.numObjects = self.tracker.N
 
         for roi in rois:
+
+
             ImgUtils.drawRect(roi, img)
             detectedCentroid = ImgUtils.getCentroid(roi)
             ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
@@ -42,15 +44,15 @@ class Detector:
     def raw1(self, img):
         self.counter += 1
         hBefore, wBefore, _ = img.shape
-        if self.counter >= 10000:
-            _, ymin, _, ymax = DetectionUtils.getBeltCoordinates(img)
-            if ymax - ymin > 200:
-                self.roiY1 = ymin
-                self.roiY2 = ymax
-            else:
-                self.roiY1 = 350
-                self.roiY2 = 700
-            self.counter = 0
+        # if self.counter >= 10000:
+        #     _, ymin, _, ymax = DetectionUtils.getBeltCoordinates(img)
+        #     if ymax - ymin > 300:
+        #         self.roiY1 = ymin
+        #         self.roiY2 = ymax
+        #     else:
+        #         self.roiY1 = 350
+        #         self.roiY2 = 700
+        #     self.counter = 0
 
         img = self.transformer.resize(img, self.roiY1, self.roiY2, 250, 770)
 

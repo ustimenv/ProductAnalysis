@@ -115,9 +115,6 @@ class JanetVgg(nn.HybridBlock):
         bboxes = F.slice_axis(result, axis=2, begin=2, end=6)
         return ids, scores, bboxes
 
-#02 = use bn is false, #03 = use bn true
-#04 good for boxes and not the classes, bn=false
-
 
 class JanetRes(nn.HybridBlock):
     def __init__(self, classes, use_1x1_transition=False, use_bn=True, reduce_ratio=1.0, min_depth=128,

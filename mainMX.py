@@ -1,11 +1,8 @@
 import cv2
 import matplotlib.pyplot as plt
 
-from ohtaDetect import StandardDetector
-from ohtaTrans import StandardDetectionTrans
 from imgUtils import ImgUtils
 from predict import *
-from track import Tracker
 
 
 class Manager:

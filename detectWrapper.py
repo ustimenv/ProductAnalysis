@@ -1,3 +1,4 @@
+import glob
 import logging
 
 import cv2
@@ -18,11 +19,7 @@ class DetectorWrapper:
             (1, 'postbakeDebug') : 'rtsp://Operator:PHZOperator@10.150.10.153/1'
         }
 
-<<<<<<< HEAD
-    def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, frameRate=16, guiMode=False):
-=======
     def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, frameRate=20, guiMode=False):
->>>>>>> origin/master
         """
         :param lineNumber: production line this detector instance is looking at
         :param positionOnLine:  production stage, either raw dough or straight out of the oven
@@ -44,7 +41,7 @@ class DetectorWrapper:
         self.frameRate = frameRate
 
 
-    def video(self):
+    def video(self, name):
         counter = 0
         writeTime = time.time()
         saveTime = time.time()
@@ -61,12 +58,13 @@ class DetectorWrapper:
             if timeElapsed > 1.0/self.frameRate:        # reduce framerate to ease the stress on the camera & network
                 prevTime = time.time()
                 curTime = time.time()
-
-<<<<<<< HEAD
+                # try:
+                #     f = '/home/vlad/Work/1/'+name+'/PassiveSamples/'+str(counter)+'.png'
+                #     cv2.imwrite(filename=f, img=feed)
+                #     counter+=1
+                # except Exception:
+                #     pass
                 if not self.guiMode and curTime - writeTime >= self.samplingPeriod:
-=======
-                if self.guiMode and curTime - writeTime >= self.samplingPeriod:
->>>>>>> origin/master
                     try:
                         self.writer.write(str(self.D.numObjects-previousN))
                         previousN = self.D.numObjects
@@ -74,11 +72,11 @@ class DetectorWrapper:
                     except:
                         print("______Critical error", file=sys.stderr)
                     writeTime = curTime
-                if time.time() - saveTime >= 600: # 600=save every 10 minutes
+                if time.time() - saveTime >= 300: # 300=save every 5 minutes
                     counter += 1
                     try:
                         filename = self.filenamePrefix + \
-                                   time.asctime()[:-8].replace(' ', '|').replace(':', '|') +\
+                                   time.asctime()[3:-8].replace(' ', '|').replace(':', '|') +\
                                    '.png'
                         cv2.imwrite(filename=filename, img=feed)
                     except:
@@ -96,21 +94,33 @@ class DetectorWrapper:
                 elif keyboard == ord('q'):
                     return
 
-    def slideshow(self):
-        for i in range(1, 1280):
-            img = cv2.imread('raw/1/' + str(i) + '.png')
+    @staticmethod
+    def slideshow(pos):
+        x = 0
+        y = 0
+        z = 0
+        #HWC
+        for filename in glob.glob("/home/vlad/Work/1/"+pos+"/UnitSamples/**.png"):
+            # img, contrast = self.D.detect(img)
+            img = cv2.imread(filename=filename)
             if img is None:
                 continue
-            img, contrast = self.D.detect(img)
-            while True:
-                ImgUtils.show('Img', img, 0, 0)
-                ImgUtils.show('Contrast', contrast, 00, 500)
+            if img.shape[0]<140:
+                y+=1
+            if img.shape[1]<140:
+                x+=1
+            if img.shape[0]<140 and img.shape[1]<140:
+                z+=1
+            # while True:
+                # ImgUtils.show('Img', img, 0, 0)
+                # ImgUtils.show('Contrast', contrast, 00, 500)
 
-                keyboard = cv2.waitKey(30)
-                if keyboard == 27:
-                    break
-                elif keyboard == ord('q'):
-                    return
+                # keyboard = cv2.waitKey(30)
+                # if keyboard == 27:
+                #     break
+                # elif keyboard == ord('q'):
+                #     return
+        print(x, y, z)
 
     def testCamera(self):
         prevTime = 0
@@ -137,7 +147,8 @@ class DetectorWrapper:
 
 
 if __name__ == "__main__":
-    D = DetectorWrapper(lineNumber=1, positionOnLine='raw', samplingPeriod=10000000, guiMode=True, port=-1)
-    D.video()
+    pos = 'postbake'
+    # D = DetectorWrapper(lineNumber=1, positionOnLine=pos, samplingPeriod=10000000, guiMode=True, port=-1)
+    # D.video(pos)
     # D.testCamera()
-    # D.slideshow()
+    DetectorWrapper.slideshow(pos)
