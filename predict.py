@@ -2,22 +2,22 @@ import gc
 
 import numpy as np
 
-from janet import *
+from brunette import *
 
 
 class Predictor:
     def __init__(self):
         self.ctx = mx.gpu()
-        self.classes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+        self.classes = ['1', '2', '3']
         self.Transer = FrameTransformer()
-        self.net = JanetRes(classes=self.classes, use_bn=True)
-        self.net.load_parameters('../params/2X6Xnet6.params', ctx=self.ctx)
+        self.net = Brunette(classes=self.classes)
+        self.net.load_parameters('models/netV2-3.params', ctx=self.ctx)
 
         self.net.collect_params()
         gc.collect()
 
     def reinit(self):
-        self.net = JanetRes(classes=self.classes, use_bn=True)
+        self.net = Brunette(classes=self.classes, use_bn=True)
         self.net.load_parameters('../params/2X6Xnet9.params', ctx=self.ctx)
         self.net.collect_params()
 

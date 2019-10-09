@@ -26,8 +26,8 @@ class TargetGenV2:
         self.tGen = SSDTargetGenerator(iou_thresh=iou_thresh, stds=stds)
 
     def generateTargets(self, label, clsPreds, ctx=mx.cpu()):
-        gt_ids= mx.nd.array(label[:, :, 0:1], ctx=ctx)
-        gt_bboxes= mx.nd.array(label[:, :, 1:5], ctx=ctx)
+        gt_ids = mx.nd.array(label[:, :, 0:1], ctx=ctx)
+        gt_bboxes = mx.nd.array(label[:, :, 1:5], ctx=ctx)
         # gt_ids = mx.nd.softmax(gt_ids, axis=0)
 
         cls_targets, box_targets, _ = self.tGen(self.anchors, clsPreds.as_in_context(ctx), gt_bboxes, gt_ids)

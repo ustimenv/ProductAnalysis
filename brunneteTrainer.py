@@ -9,20 +9,19 @@ from brunette import Brunette
 
 
 class Trainer:
-    BATCH_SIZE = 4
-    NUM_EPOCHS = 13
+    BATCH_SIZE = 2
+    NUM_EPOCHS = 7
     classes = ['1', '2', '3']
     ctx = mx.gpu()
     lossFunction = SSDMultiBoxLoss()
 
     def __init__(self):
-        self.net = Brunette(classes=self.classes, use_bn=True)
+        self.net = Brunette(classes=self.classes)
         self.net.initialize(ctx=self.ctx)
 
         self.trainIter = image.ImageDetIter(batch_size=self.BATCH_SIZE, data_shape=(3, 300, 300),
-                                            path_imgrec='utils/Trainx.rec',
-                                            path_imgidx='utils/Trainx.idx',
-                                            # path_img='/home/vlad/Work/1/MLworkDir/Trainx.idx',
+                                            path_imgrec='/home/vlad/Work/1/MlWorkDir/TrainMiny.rec',
+                                            path_imgidx='/home/vlad/Work/1/MlWorkDir/TrainMiny.idx',
                                             )
 
         with autograd.train_mode():
@@ -51,13 +50,21 @@ class Trainer:
                     '''Make Predictions'''
                     clsPreds, bboxPreds, _ = self.net(X)
                     clsTargets, bboxTargets = self.T.generateTargets(Y, clsPreds)
-
                     sumLoss, clsLoss, bboxLoss = self.lossFunction(clsPreds,
                                                                    bboxPreds,
                                                                    clsTargets.as_in_context(self.ctx),
                                                                    bboxTargets.as_in_context(self.ctx))
+                    # print(clsTargets, mx.nd.softmax(clsTargets, axis=0),
+                    #                                 mx.nd.softmax(clsTargets, axis=1),
+                    #                                     )
+
+                    # print(clsPreds, mx.nd.softmax(clsPreds, axis=0),
+                    #                                                     mx.nd.softmax(clsPreds, axis=1),
+                    #                                                     mx.nd.softmax(clsPreds, axis=2),
+                    #                                                         )
+
                     '''Compute Losses'''
-                    if (i+1) % 20 == 0:
+                    if (i+1) % 100 == 0 :
                         print('B:{}, Loss:{:.3f}, \nClsLoss:{}, \nBboxLoss:{}\n\n'.format
                               (i, mx.nd.mean(sumLoss[0]).asscalar(), clsLoss[0].asnumpy(), bboxLoss[0].asnumpy()))
                     # back-propagate #TODO 1st vs 2nd order derivative??
@@ -73,7 +80,7 @@ class Trainer:
             print('[Epoch {}], Speed: {:.3f} samples/sec, {}={:.3f}, {}={:.3f}'
                   .format(epoch, self.BATCH_SIZE / (time() - tic), name1, loss1, name2, loss2))
 
-            self.net.save_parameters('models/' + 'netV1-' + str(epoch) + '.params')
+            self.net.save_parameters('models/' + 'netV3-' + str(epoch) + '.params')
 
 
 if __name__ == "__main__":
