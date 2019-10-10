@@ -4,13 +4,14 @@ from gluoncv.loss import SSDMultiBoxLoss
 from mxnet import gluon, autograd
 from mxnet import image
 
-from targetGen import *
+from targetGen import TargetGenV2
+import mxnet as mx
 from brunette import Brunette
 
 
 class Trainer:
     BATCH_SIZE = 2
-    NUM_EPOCHS = 7
+    NUM_EPOCHS = 13
     classes = ['1', '2', '3']
     ctx = mx.gpu()
     lossFunction = SSDMultiBoxLoss()
@@ -20,8 +21,8 @@ class Trainer:
         self.net.initialize(ctx=self.ctx)
 
         self.trainIter = image.ImageDetIter(batch_size=self.BATCH_SIZE, data_shape=(3, 300, 300),
-                                            path_imgrec='/home/vlad/Work/1/MlWorkDir/TrainMiny.rec',
-                                            path_imgidx='/home/vlad/Work/1/MlWorkDir/TrainMiny.idx',
+                                            path_imgrec='utils/TrainFull.rec',
+                                            path_imgidx='utils/TrainFull.idx',
                                             )
 
         with autograd.train_mode():
@@ -64,7 +65,7 @@ class Trainer:
                     #                                                         )
 
                     '''Compute Losses'''
-                    if (i+1) % 100 == 0 :
+                    if (i+1) % 100 == 0:
                         print('B:{}, Loss:{:.3f}, \nClsLoss:{}, \nBboxLoss:{}\n\n'.format
                               (i, mx.nd.mean(sumLoss[0]).asscalar(), clsLoss[0].asnumpy(), bboxLoss[0].asnumpy()))
                     # back-propagate #TODO 1st vs 2nd order derivative??
@@ -79,8 +80,8 @@ class Trainer:
 
             print('[Epoch {}], Speed: {:.3f} samples/sec, {}={:.3f}, {}={:.3f}'
                   .format(epoch, self.BATCH_SIZE / (time() - tic), name1, loss1, name2, loss2))
-
-            self.net.save_parameters('models/' + 'netV3-' + str(epoch) + '.params')
+            if epoch % 2 != 0:
+                self.net.save_parameters('models/' + 'netV4-' + str(epoch) + '.params')
 
 
 if __name__ == "__main__":

@@ -11,15 +11,10 @@ class Predictor:
         self.classes = ['1', '2', '3']
         self.Transer = FrameTransformer()
         self.net = Brunette(classes=self.classes)
-        self.net.load_parameters('models/netV2-3.params', ctx=self.ctx)
+        self.net.load_parameters('models/netV31-8.params', ctx=self.ctx)
 
         self.net.collect_params()
         gc.collect()
-
-    def reinit(self):
-        self.net = Brunette(classes=self.classes, use_bn=True)
-        self.net.load_parameters('../params/2X6Xnet9.params', ctx=self.ctx)
-        self.net.collect_params()
 
     def getBoxes(self, frame, threshold=0.2):
         h, w, _ = frame.shape
@@ -51,7 +46,18 @@ class FrameTransformer:
         self._mean = [123.68/300, 116.28/300, 103.53/300]
         self._std = [58.395/300, 57.12/300, 57.375/300]
 
+    def transform0(self, image):
+        image = image[:, :, (2, 1, 0)]
+        image = image.astype(np.float32)
+        image -= np.array([123, 117, 104])
+        image = np.transpose(image, (2, 0, 1))
+        image = image[np.newaxis, :]
+        image = mx.nd.array(image, ctx=mx.gpu())
+        return image
+
     def transform(self, image):
+        from cv2 import resize
+        image = resize(image, (300, 300))
         image = image[:, :, (2, 1, 0)]
         image = image.astype(np.float32)
         image -= np.array([123, 117, 104])

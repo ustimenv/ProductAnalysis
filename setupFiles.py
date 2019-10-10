@@ -177,7 +177,7 @@ class SystemUtils:
 
     @staticmethod
     def fullSetup(srcDir, dstDir, postfix, perClass):
-        if True:
+        if False:
             try:
                 trainDirName = dstDir + '/Train' + postfix
                 testDirName = dstDir + '/Test' + postfix
@@ -191,7 +191,7 @@ class SystemUtils:
                 traceback.print_exc()
 
             print('Directories initialised successfully')
-        if True:
+        if False:
             copyCommand = "cp %s %s"
             pendulum = 0
             counter = 0
@@ -219,6 +219,7 @@ class SystemUtils:
 
             print('Directories filled successfully')
 
+        bbox = [5, 5, 295, 295]
         if True:
             for target in ('Test', 'Train'):
                 target += postfix
@@ -227,7 +228,9 @@ class SystemUtils:
                     for fullPath in glob.glob(dstDir+'/%s/**/*.png' % target, recursive=True):
                         imgClass = fullPath.split('/')[-2]
 
-                        imgPadded, bbox = SystemUtils.pad(cv2.imread(fullPath))
+                        #imgPadded, bbox = SystemUtils.pad(cv2.imread(fullPath), newDim=512)
+                        imgPadded = cv2.resize(cv2.imread(fullPath), (300, 300))
+
                         if imgPadded is None:
                             continue
 
@@ -255,16 +258,15 @@ class SystemUtils:
 if __name__ == "__main__":
     # SystemUtils.initLST('/home/vlad/Work/1/MLworkDir', 'Train')
     # SystemUtils.initLST('/home/vlad/Work/1/MLworkDir', 'Test')
-    PerClass = {      '0' : {'numberToCopy' : 6,
+    PerClass = {      '0' : {'numberToCopy' : 1,
                              'widthThresh' : 140,
                              'heightThresh' : 140,
 
                              },
 
-                      '1' : {'numberToCopy' : 18,
+                      '1' : {'numberToCopy' : 3,
                              'widthThresh': 140,
                              'heightThresh': 140,
-
                              },
 
 
@@ -272,7 +274,7 @@ if __name__ == "__main__":
 
     SystemUtils.fullSetup(srcDir='/home/vlad/Work/1/MlMasterDir',
                           dstDir='/home/vlad/Work/1/MlWorkDir',
-                          postfix='Miny', perClass=PerClass)
+                          postfix='Full', perClass=PerClass)
 
     pass
     # SystemUtils.copySomeV2("/home/vlad/Work/1/raw/UnitSamples",

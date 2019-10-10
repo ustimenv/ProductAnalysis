@@ -23,29 +23,27 @@ class Manager:
         # self.camera.open('rtsp://Kornfeil:Kornfeil7@10.150.10.153 /1')
 
     def slideshow(self):
-        for imgName in glob.glob("/home/vlad/Work/1/MlWorkDir/Test/**/*.png", recursive=True):
-            print(imgName)
+        for imgName in glob.glob("/home/vlad/Work/1/postbake/Full/**/*.png", recursive=True):
+
             img = cv2.imread(imgName)
-
-            out = self.P.getBoxes(img, threshold=0)
-
+            out = self.P.getBoxes(img, threshold=0.7)
             for i, x in enumerate(out):
                 cid = x[0]
                 score = x[1]
                 roi = x[2:]
-                # print(cid, roi)
                 label = '|{}|.{:.3f}'.format(cid, score)
                 ImgUtils.drawRect(roi, img, colour=(255, 0, 0))
                 cv2.putText(img=img, text=label, org=(int(roi[0]), int(roi[1])),
                             fontFace=cv2.FONT_HERSHEY_PLAIN, thickness=1, lineType=cv2.LINE_4,
                             fontScale=2, color=(0, 255, 255))
-                while True:
-                    ImgUtils.show("Feed", img, 0, 0)
-                    key = cv2.waitKey(30)
-                    if key== ord('q'):
-                        return
-                    elif key==ord('v'):
-                        break
+            print('\n')
+            while True:
+                ImgUtils.show("Feed", img, 0, 0)
+                key = cv2.waitKey(30)
+                if key == ord('q'):
+                    return
+                elif key == ord('v'):
+                    break
 
 
     # def main(self):
@@ -151,6 +149,9 @@ class Manager:
 if __name__ == "__main__":
     m = Manager()
     m.slideshow()
+
+    # camera = cv2.VideoCapture()
+    # camera.open('rtsp://Kornfeil:Kornfeil7@10.150.10.153 /1')
     # while True:
     #     _, x = camera.read()
     #     if x is None:

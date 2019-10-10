@@ -17,11 +17,21 @@ class Brunette(nn.HybridBlock):
         self.classes = classes
         im_size = (300, 300)
 
+        # network = 'resnet101_v2'
+        # features = ['stage3_activation22', 'stage4_activation2']
+        # channels = [512, 512, 256, 256]
+        # sizes = [0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 0.9]
+        # ratios = [[1, 2, 1.4]] * 2 + [[1, 2, 0.8, 3, 0.8]] * 2 + [[1, 2, 1.5]] * 2
+        # steps = [40 / 300, 100 / 300, 120 / 300, 150 / 300, 180 / 300, 250 / 300]
+        # num_layers = len(features) + len(channels)
+        #
         # self.features = JafeatVgg()
-        # sizes = [0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.9]
+        # # sizes = [0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.9]
+        # sizes = [30/300, 60/300, 111/300, 162/300, 213/300, 264/300, 315/300]
         # ratios = [[1, 2, 1.4]] * 2 + [[1, 2, 0.8, 3, 0.8]] * 2 + [[1, 2, 1.5]]*2
         # steps = [40 / 300, 100 / 300, 120/300,  150 / 300, 180 / 300, 250 / 300]
         # num_layers = len(ratios)
+        #
         # sizes = list(zip(sizes[:-1], sizes[1:]))
         # self._num_layers = num_layers
         # self.classes = classes
@@ -70,9 +80,6 @@ class Brunette(nn.HybridBlock):
                 self.box_predictors.add(ConvPredictor(num_anchors * 4))
             self.bbox_decoder = NormalizedBoxCenterDecoder(stds)
             self.cls_decoder = MultiPerClassDecoder(len(self.classes) + 1, thresh=0.01)
-
-
-
 
     @property
     def num_classes(self):
