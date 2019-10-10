@@ -31,6 +31,7 @@ class Manager:
                 cid = x[0]
                 score = x[1]
                 roi = x[2:]
+                print(cid, score)
                 label = '|{}|.{:.3f}'.format(cid, score)
                 ImgUtils.drawRect(roi, img, colour=(255, 0, 0))
                 cv2.putText(img=img, text=label, org=(int(roi[0]), int(roi[1])),

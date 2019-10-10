@@ -55,7 +55,7 @@ class Brunette(nn.HybridBlock):
         #     self.cls_decoder = MultiPerClassDecoder(len(self.classes) + 1, thresh=0.01)
         ########################################################################
         self.features = JafeatVgg()
-        sizes = [0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.9]
+        sizes = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
         ratios = [[1, 2, 1.4]] * 2 + [[1, 2, 0.8, 3, 0.8]] * 2 + [[1, 2, 1.5]]*2
         steps = [40 / 300, 100 / 300, 120/300,  150 / 300, 180 / 300, 250 / 300]
         num_layers = len(ratios)

@@ -1,8 +1,7 @@
-import gc
 
 import numpy as np
-
-from brunette import *
+import mxnet as mx
+from brunette import Brunette
 
 
 class Predictor:
@@ -11,10 +10,8 @@ class Predictor:
         self.classes = ['1', '2', '3']
         self.Transer = FrameTransformer()
         self.net = Brunette(classes=self.classes)
-        self.net.load_parameters('models/netV31-8.params', ctx=self.ctx)
-
+        self.net.load_parameters('models/netV4-5.params', ctx=self.ctx)
         self.net.collect_params()
-        gc.collect()
 
     def getBoxes(self, frame, threshold=0.2):
         h, w, _ = frame.shape
@@ -24,8 +21,8 @@ class Predictor:
         # print(h, w)
         w = 300
         h = 300
-        xOffset = 0#w - 300
-        yOffset = 0#h - 300
+        xOffset = w - 300
+        yOffset = h - 300
 
         for cid, score, coords in zip(allIds[0], allScores[0], allBoxes[0]):
             cid = cid.asnumpy()[0]
@@ -35,7 +32,6 @@ class Predictor:
             xmin, ymin, xmax, ymax = coords.asnumpy()
             xmin *= w; ymin *= h; xmax *= w; ymax *= h
             out.append([cid, score, xmin, ymin, xmax, ymax])
-        gc.collect()
         return out
 
 
@@ -58,7 +54,6 @@ class FrameTransformer:
     def transform(self, image):
         from cv2 import resize
         image = resize(image, (300, 300))
-        image = image[:, :, (2, 1, 0)]
         image = image.astype(np.float32)
         image -= np.array([123, 117, 104])
         image = np.transpose(image, (2, 0, 1))

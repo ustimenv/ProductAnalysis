@@ -11,18 +11,20 @@ from brunette import Brunette
 
 class Trainer:
     BATCH_SIZE = 2
-    NUM_EPOCHS = 13
-    classes = ['1', '2', '3']
+    NUM_EPOCHS = 27
+    classes = ['1', '2']
     ctx = mx.gpu()
     lossFunction = SSDMultiBoxLoss()
 
     def __init__(self):
         self.net = Brunette(classes=self.classes)
-        self.net.initialize(ctx=self.ctx)
+        self.net.initialize(mx.init.Xavier(magnitude=2), ctx=self.ctx)
 
         self.trainIter = image.ImageDetIter(batch_size=self.BATCH_SIZE, data_shape=(3, 300, 300),
                                             path_imgrec='utils/TrainFull.rec',
                                             path_imgidx='utils/TrainFull.idx',
+                                            shuffle=True, mean=True,
+                                            brightness=0.3, contrast=0.3, saturation=0.3, pca_noise=0.3, hue=0.3
                                             )
 
         with autograd.train_mode():
@@ -31,7 +33,7 @@ class Trainer:
         self.T = TargetGenV2(anchors=anchors.as_in_context(mx.cpu()), height=300, width=300)
 
         self.net.collect_params().reset_ctx(self.ctx)
-        self.trainer = gluon.Trainer(self.net.collect_params(), 'sgd', {'learning_rate': 0.1, 'wd': 5e-4})
+        self.trainer = gluon.Trainer(self.net.collect_params(), 'sgd', {'learning_rate': 0.1, 'wd': 3e-4})
 
     def train(self):
         print('Preparing to train')
@@ -81,7 +83,7 @@ class Trainer:
             print('[Epoch {}], Speed: {:.3f} samples/sec, {}={:.3f}, {}={:.3f}'
                   .format(epoch, self.BATCH_SIZE / (time() - tic), name1, loss1, name2, loss2))
             if epoch % 2 != 0:
-                self.net.save_parameters('models/' + 'netV4-' + str(epoch) + '.params')
+                self.net.save_parameters('models/' + 'netV4-1--' + str(epoch) + '.params')
 
 
 if __name__ == "__main__":
