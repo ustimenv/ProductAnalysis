@@ -23,15 +23,20 @@ class Manager:
         # self.camera.open('rtsp://Kornfeil:Kornfeil7@10.150.10.153 /1')
 
     def slideshow(self):
-        for imgName in glob.glob("/home/vlad/Work/1/postbake/Full/**/*.png", recursive=True):
-
+        for imgName in glob.glob("/beta/Work/1/raw/Full/*.png", recursive=True):
+        # for imgName in glob.glob("/beta/Work/1/MlWorkDir/TestFull/**/*.png", recursive=True):
             img = cv2.imread(imgName)
-            out = self.P.getBoxes(img, threshold=0.7)
+            img = cv2.resize(img, dsize=None, fx=0.8, fy=0.8)
+            # img = cv2.resize(img, (800, 800))
+            out = self.P.getBoxes(img, threshold=0.07)
             for i, x in enumerate(out):
+                if i >5:
+                    break
                 cid = x[0]
                 score = x[1]
                 roi = x[2:]
-                print(cid, score)
+                print(cid, score, [int(i) for i in roi])
+
                 label = '|{}|.{:.3f}'.format(cid, score)
                 ImgUtils.drawRect(roi, img, colour=(255, 0, 0))
                 cv2.putText(img=img, text=label, org=(int(roi[0]), int(roi[1])),
@@ -76,16 +81,6 @@ class Manager:
     #         keyboard = cv2.waitKey(30)
     #         if keyboard == 'q' or keyboard == 27:
     #             break
-
-    def showFeed(self):
-        while True:
-            _, feed = self.camera.read()
-            if feed is None:
-                continue
-            ImgUtils.show("Feed", feed, 0, 0)
-            keyboard = cv2.waitKey(30)
-            if keyboard == 'q' or keyboard == 27:
-                break
 
     @staticmethod
     def box_to_rect(box, linewidth=1):

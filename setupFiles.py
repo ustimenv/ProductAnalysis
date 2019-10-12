@@ -10,7 +10,7 @@ import traceback
 import cv2
 from numpy.distutils.system_info import x11_info
 
-
+from detectorFactory import DetectorFactory
 from imgUtils import ImgUtils
 
 
@@ -75,7 +75,7 @@ class SystemUtils:
     def initLST(topDirName, lstName):             # (xmin, ymin, xmax, ymax)
         with open('%s/%sx.lst' % (topDirName, lstName), 'w') as fw:
             counter = 0
-            for fullPath in glob.glob('/home/vlad/Work/1/MLworkDir/%s/*/**.png' % lstName, recursive=True):
+            for fullPath in glob.glob('/beta/Work/1/MLworkDir/%s/*/**.png' % lstName, recursive=True):
                 counter += 1
                 dirName = fullPath.split('/')[-2]
 
@@ -155,7 +155,7 @@ class SystemUtils:
         return gmi, (0, 0, w, h)
 
     # @staticmethod
-    # def padAll(path='/home/vlad/Work/1/MLworkDir/', xThresh=140, yThresh=140):
+    # def padAll(path='/beta/Work/1/MLworkDir/', xThresh=140, yThresh=140):
     #     path = path+'*/**/*.png'
     #     nDeleted=0
     #     for imgPath in glob.glob(path, recursive=False):
@@ -177,7 +177,7 @@ class SystemUtils:
 
     @staticmethod
     def fullSetup(srcDir, dstDir, postfix, perClass):
-        if False:
+        if True:
             try:
                 trainDirName = dstDir + '/Train' + postfix
                 testDirName = dstDir + '/Test' + postfix
@@ -191,7 +191,8 @@ class SystemUtils:
                 traceback.print_exc()
 
             print('Directories initialised successfully')
-        if False:
+
+        if True:
             copyCommand = "cp %s %s"
             pendulum = 0
             counter = 0
@@ -219,7 +220,6 @@ class SystemUtils:
 
             print('Directories filled successfully')
 
-        bbox = [5, 5, 295, 295]
         if True:
             for target in ('Test', 'Train'):
                 target += postfix
@@ -229,7 +229,7 @@ class SystemUtils:
                         imgClass = fullPath.split('/')[-2]
 
                         #imgPadded, bbox = SystemUtils.pad(cv2.imread(fullPath), newDim=512)
-                        imgPadded = cv2.resize(cv2.imread(fullPath), (300, 300))
+                        # imgPadded = cv2.resize(cv2.imread(fullPath), (300, 300))
 
                         if imgPadded is None:
                             continue
@@ -254,35 +254,143 @@ class SystemUtils:
                 print('REC completed')
 
 
+class Setup:
+    def __init__(self, srcDir, dstDir, postfix, ):
+        self.srcDir = srcDir
+        self.postfix = postfix
+        self.dstDir = dstDir
+
+        self.PerClass = {'0': {'name': 'raw',
+                               'numberToCopy': 1,
+
+                          },
+                    '1': {'name': 'postbake',
+                          'numberToCopy': 3,
+                          },
+                    }
+
+        self.extactors = dict()
+        for cat in self.PerClass.keys():
+            self.extactors[cat] = DetectorFactory.getDetector(1, self.PerClass[cat]['name'])
+
+    def extractAndCopy(self):
+        counter=0
+        filepathPrefix = "/beta/Work/2/Train/raw/"
+        # for imgName in glob.glob("/beta/Work/2/Train/raw/*.png", recursive=True):
+        #     img = cv2.imread(imgName)
+        #     dets = self.D.detectDebug(img)
+        #
+        #     for roi in dets:
+        #         if roi[0]>460 and roi[3]<680:
+        #             continue
+        #         ImgUtils.drawRect(roi, img)
+        #         try:
+        #             counter += 1
+        #         except:
+        #             print("out of bounds")
+
+
+        counter=0
+        filepathPrefix = "/beta/Work/2/Train/postbake/"
+        for imgName in glob.glob("/beta/Work/2/postbake/*.png", recursive=True):
+            img = cv2.imread(imgName)
+            dets = self.D.detectDebug(img)
+            for (cX, cY), rad in dets:
+                if 600 < cX < 760 and 160 < cY < 560:
+                    cv2.imwrite(filepathPrefix+str(counter)+".png",
+                                ImgUtils.sampleAround(img, cX, cY, 300, 300))
+                    counter += 1
+
+            while True:
+                ImgUtils.show('Img', img, 0, 0)
+                # if X is not None:
+                #     ImgUtils.show('X', X, 800, 900)
+                key = cv2.waitKey(30)
+                if key == 27 or key == ord('v'):
+                    break
+                elif key == ord('q'):
+                    return
+
+    def initDirs(self):
+        try:
+            trainDirName = self.dstDir + '/Train' + self.postfix
+            testDirName = self.dstDir + '/Test' + self.postfix
+
+            call('mkdir %s %s' % (trainDirName, testDirName), shell=True)
+            for category in self.perClass.keys():
+                call('mkdir %s %s' % (trainDirName + '/' + category,
+                                      testDirName + '/' + category), shell=True)
+
+        except Exception as e:
+            traceback.print_exc()
+        print('Directories initialised successfully')
+
+    def copy(self):
+        copyCommand = "cp %s %s"
+        pendulum = 0
+        counter = 0
+        for _srcFilename in glob.glob(self.srcDir + "/**/*.png", recursive=True):
+            srcFilename = _srcFilename.split('/')
+            imgClass = srcFilename[-2]
+
+            dstFilename = self.dstDir + '/' + srcFilename[-3] + self.postfix + '/' + srcFilename[-2] + '/' + srcFilename[-1]
+
+            w, h = Image.open(_srcFilename).size
+            try:
+                if w < self.perClass[imgClass]['widthThresh'] or h < self.perClass[imgClass]['heightThresh']:
+                    continue
+            except Exception as e:
+                traceback.print_exc()
+                continue
+
+            pendulum += 1
+            if pendulum % self.perClass[imgClass]['numberToCopy'] == 0:
+                counter += 1
+                if counter % 20 == 0:
+                    call(copyCommand % (_srcFilename, dstFilename), shell=True)
+                else:
+                    call(copyCommand % (_srcFilename, dstFilename), shell=True)
+
+        print('Directories filled successfully')
+
+    def initLst(self):
+        for target in ('Train', ):
+            target += self.postfix
+            with open('%s/%s.lst' % (self.dstDir, target), 'w') as fw:
+                index = 0
+                for fullPath in glob.glob(self.dstDir+'/**/*.png', recursive=True):
+                    imgNumClass = fullPath.split('/')[-2]
+
+                    img = cv2.imread(fullPath)
+                    dets = self.extactors[imgNumClass].detectDebug(img)
+                    if dets is None or len(dets) != 1:
+                        continue
+
+                    index += 1
+                    line = SystemUtils.writeLSTLine(fullPath,
+                                                    img.shape,
+                                                    np.array([dets[0]], ),
+                                                    np.array([int(imgNumClass)]),
+                                                    index, normaliseBboxes=True)
+                    print(line)
+                    fw.write(line)
+            print('LST file(s) generated')
+
+            createRecCommand = 'python3.5 /beta/Work/im2rec.py ' \
+                               '%s/%s.lst ' \
+                               '%s ' \
+                               '--recursive --pass-through --pack-label --num-thread 8'
+
+            call(createRecCommand % (self.dstDir, target, '/'), shell=True)
+            print('REC completed')
+
 
 if __name__ == "__main__":
-    # SystemUtils.initLST('/home/vlad/Work/1/MLworkDir', 'Train')
-    # SystemUtils.initLST('/home/vlad/Work/1/MLworkDir', 'Test')
-    PerClass = {      '0' : {'numberToCopy' : 1,
-                             'widthThresh' : 140,
-                             'heightThresh' : 140,
+    C = Setup(srcDir='/beta/Work/2/Train',
+              dstDir='/beta/Work/2/Train',
+              postfix='Y')
+    C.initLst()
 
-                             },
-
-                      '1' : {'numberToCopy' : 3,
-                             'widthThresh': 140,
-                             'heightThresh': 140,
-                             },
-
-
-                }
-
-    SystemUtils.fullSetup(srcDir='/home/vlad/Work/1/MlMasterDir',
-                          dstDir='/home/vlad/Work/1/MlWorkDir',
-                          postfix='Full', perClass=PerClass)
-
-    pass
-    # SystemUtils.copySomeV2("/home/vlad/Work/1/raw/UnitSamples",
-    #                         "/home/vlad/Work/1/Train/0",
-    #                         "/home/vlad/Work/1/Test/0",
-    #                         140, 140, 10)
-    #
-    # SystemUtils.copySomeV2("/home/vlad/Work/1/postbake/UnitSamples",
-    #                         "/home/vlad/Work/1/Train/1",
-    #                         "/home/vlad/Work/1/Test/1",
-    #                         140, 140, 10)
+    # SystemUtils.fullSetup(srcDir='/beta/Work/2/MlMasterDir',
+    #                       dstDir='/beta/Work/2/MlWorkDir',
+    #                       postfix='Full', perClass=PerClass)

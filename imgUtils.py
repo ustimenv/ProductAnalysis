@@ -31,7 +31,7 @@ class ImgUtils:
     def getCentroid(box):
         cX = int((box[0] + box[2]) / 2.0)
         cY = int((box[1] + box[3]) / 2.0)
-        return (cX, cY)
+        return cX, cY
 
     @staticmethod
     def drawRect(rect, frame, colour=(255,0,0), offset=(0,0,0,0)):
@@ -58,7 +58,30 @@ class ImgUtils:
     def circleToRectabgle(center, radius):
         cX = int(center[0]); cY = int(center[1]); r = int(radius)
         xmin = cX-r; ymin = cY-r; xmax = cX + r; ymax = cY +r
-        return xmin, ymin, xmax, ymax
+        return [xmin, ymin, xmax, ymax]
+
+    @staticmethod
+    def sampleRoi(img, roi, sampleDims=None):
+        """
+
+        :param img:
+        :param roi:
+        :param sampleDims:   (ySize, xSize)
+        :return:
+        """
+        if sampleDims is None:
+            return img[roi[1]:roi[3], roi[0]:roi[2]]
+        else:
+            dy = int(sampleDims[0]/2)
+            dx = int(sampleDims[1]/2)
+            cX, cY = ImgUtils.getCentroid(roi)
+            return img[cY-dy : cY+dy, cX-dx:cX+dx]
+
+    @staticmethod
+    def sampleAround(img, cX, cY, width, height):
+        dy = int(height/2)
+        dx = int(width/2)
+        return img[cY-dy : cY+dy, cX-dx:cX+dx]
 
     @staticmethod
     def showLines(img, lines):

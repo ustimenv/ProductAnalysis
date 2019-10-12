@@ -126,3 +126,6 @@ class Brunette(nn.HybridBlock):
         bboxes = F.slice_axis(result, axis=2, begin=2, end=6)
         return ids, scores, bboxes
 
+if __name__ == "__main__":
+    B = Brunette(['1', '2'])
+    print(B)

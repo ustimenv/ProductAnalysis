@@ -7,10 +7,11 @@ from brunette import Brunette
 class Predictor:
     def __init__(self):
         self.ctx = mx.gpu()
-        self.classes = ['1', '2', '3']
+        self.classes = ['1', '2']
         self.Transer = FrameTransformer()
         self.net = Brunette(classes=self.classes)
-        self.net.load_parameters('models/netV4-5.params', ctx=self.ctx)
+
+        self.net.load_parameters('models/netV4-1--13.params', ctx=self.ctx)
         self.net.collect_params()
 
     def getBoxes(self, frame, threshold=0.2):
@@ -19,8 +20,8 @@ class Predictor:
         allIds, allScores, allBoxes = self.net(frame)
         out = []
         # print(h, w)
-        w = 300
-        h = 300
+        # w = 300
+        # h = 300
         xOffset = w - 300
         yOffset = h - 300
 
@@ -31,6 +32,12 @@ class Predictor:
                 continue
             xmin, ymin, xmax, ymax = coords.asnumpy()
             xmin *= w; ymin *= h; xmax *= w; ymax *= h
+            # xmin *= w
+            # ymin *= h
+            # xmax *= w
+            # xmax-=xmin
+            # ymax *= h
+            # ymax-=ymin
             out.append([cid, score, xmin, ymin, xmax, ymax])
         return out
 
@@ -52,8 +59,9 @@ class FrameTransformer:
         return image
 
     def transform(self, image):
-        from cv2 import resize
-        image = resize(image, (300, 300))
+        # from cv2 import resize
+        # print(image.shape)
+        # image = resize(image, dsize=None, fx=0.8, fy=0.8)
         image = image.astype(np.float32)
         image -= np.array([123, 117, 104])
         image = np.transpose(image, (2, 0, 1))

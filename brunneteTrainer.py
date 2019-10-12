@@ -21,8 +21,8 @@ class Trainer:
         self.net.initialize(mx.init.Xavier(magnitude=2), ctx=self.ctx)
 
         self.trainIter = image.ImageDetIter(batch_size=self.BATCH_SIZE, data_shape=(3, 300, 300),
-                                            path_imgrec='utils/TrainFull.rec',
-                                            path_imgidx='utils/TrainFull.idx',
+                                            path_imgrec='/beta/Work/2/Train/TrainY.rec',
+                                            path_imgidx='/beta/Work/2/Train/TrainY.idx',
                                             shuffle=True, mean=True,
                                             brightness=0.3, contrast=0.3, saturation=0.3, pca_noise=0.3, hue=0.3
                                             )

@@ -12,6 +12,7 @@ class Detector:
         self.dim2Lower = dim2Lower; self.dim2Upper = dim2Upper
         self.transformer = eval('Transformer(name)')
         self.detect = eval('self.' + name)
+        self.detectDebug = eval('self.'+name+'Debug')
         self.numObjects = -1
         self.tracker = Tracker(**kwargs)
 
@@ -44,16 +45,6 @@ class Detector:
     def raw1(self, img):
         self.counter += 1
         hBefore, wBefore, _ = img.shape
-        # if self.counter >= 10000:
-        #     _, ymin, _, ymax = DetectionUtils.getBeltCoordinates(img)
-        #     if ymax - ymin > 300:
-        #         self.roiY1 = ymin
-        #         self.roiY2 = ymax
-        #     else:
-        #         self.roiY1 = 350
-        #         self.roiY2 = 700
-        #     self.counter = 0
-
         img = self.transformer.resize(img, self.roiY1, self.roiY2, 250, 770)
 
         contrast = self.transform(img)
@@ -73,13 +64,43 @@ class Detector:
         return img, contrast
 
 
+
+    def postbake1Debug(self, feed):
+        radiusMin = self.dim1Lower
+        radiusMax = self.dim1Upper
+        img = self.transform(feed)
+
+        circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 150, param1=101, param2=11,
+                                   minRadius=radiusMin, maxRadius=radiusMax)
+        dets = []
+        if circles is not None:
+            circles = np.uint16(np.around(circles))
+            for i in circles[0, :]:
+                center = (i[0], i[1])
+                cv2.circle(img, center, 1, (0, 100, 100), 3)
+                radius = i[2]
+                if radiusMin < radius < radiusMax:
+                    cv2.circle(img, center, radius, (255, 0, 255), 3)
+                    dets.append(ImgUtils.circleToRectabgle(center, radius))
+        return dets
+
+    def raw1Debug(self, img):
+        contrast = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)[:, :, 2]
+        contrast = cv2.bitwise_not(contrast)
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+        contrast = cv2.morphologyEx(contrast, cv2.MORPH_DILATE, kernel, iterations=2)
+        contrast = cv2.threshold(src=contrast, maxval=255, thresh=200, type=cv2.THRESH_BINARY)[1]
+        rois = DetectionUtils.houghDetect(contrast, 70, 140)
+        return rois
+
+
 class DetectionUtils:
     @staticmethod
     def houghDetect(img, radiusMin, radiusMax):
         """
 
         :param img: grayscale image with some circles
-        :return:[(xCenter, yCenter), radius]
+        :return:[bounding rectangles]
         """
         circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 150, param1=101, param2=11,
                                    minRadius=radiusMin, maxRadius=radiusMax)
