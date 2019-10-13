@@ -56,8 +56,7 @@ class SSDtrainer:
         return box_target, box_mask, cls_target
 
     def train(self):
-        num_epochs = 8
-
+        num_epochs = 14
         for epoch in range(num_epochs):
             print("EPOCH ", epoch)
             self.trainIter.reset()
@@ -82,7 +81,7 @@ class SSDtrainer:
 
                 l.backward()
                 self.trainer.step(self.batchSize)
-            self.net.save_parameters('netV5-1--'+str(epoch)+'.params')
+            self.net.save_parameters('netV5-2--'+str(epoch)+'.params')
 
 
 if __name__ == '__main__':

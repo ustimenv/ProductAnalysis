@@ -9,14 +9,13 @@ class Predictor:
         self.ctx = mx.gpu()
         self.classes = ['1', '2']
         self.net = SSDv1()
-        self.net.load_parameters('models/netV5-0--3.params', ctx=self.ctx)
+        self.net.load_parameters('models/netV5-1--7.params', ctx=self.ctx)
         self.net.collect_params()
 
-    def predict(self, img, threshold=0.2):
-        # h, w, _ = img.shape
+    def predict(self, img, threshold=0.72):
+        h, w, _ = img.shape
         frame = self.transform(img)
-        _, _, h, w = frame.shape
-
+        # _, _, h, w = frame.shape
         anchors, clsPreds, boxPreds = self.net(frame)
         clsProbs = mx.nd.SoftmaxActivation(mx.nd.transpose(clsPreds, (0, 2, 1)), mode='channel')
         rawOuput = mx.nd.contrib.MultiBoxDetection(*[clsProbs, boxPreds, anchors], force_suppress=True, clip=False)

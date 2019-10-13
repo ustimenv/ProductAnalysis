@@ -110,7 +110,6 @@ class Manager:
                     print(cid , '===', score)
             plt.show()
 
-
     def test2(self):
         for i in range(1, 3):
             name = 'feed'+str(i)+'.png'

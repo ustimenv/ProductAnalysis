@@ -1,4 +1,5 @@
 import mxnet as mx
+from gluoncv.model_zoo import SSD
 from gluoncv.model_zoo.ssd.anchor import SSDAnchorGenerator
 from gluoncv.nn.coder import NormalizedBoxCenterDecoder, MultiPerClassDecoder
 from gluoncv.nn.predictor import ConvPredictor
@@ -6,7 +7,6 @@ from mxnet import autograd
 from mxnet.gluon import nn
 
 from jafeat import JafeatVgg
-
 
 class Brunette(nn.HybridBlock):
     def __init__(self, classes,
@@ -55,9 +55,12 @@ class Brunette(nn.HybridBlock):
         #     self.cls_decoder = MultiPerClassDecoder(len(self.classes) + 1, thresh=0.01)
         ########################################################################
         self.features = JafeatVgg()
-        sizes = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-        ratios = [[1, 2, 1.4]] * 2 + [[1, 2, 0.8, 3, 0.8]] * 2 + [[1, 2, 1.5]]*2
-        steps = [40 / 300, 100 / 300, 120/300,  150 / 300, 180 / 300, 250 / 300]
+
+        #ratios = [[1, 2, 1.4]] * 2 + [[1, 2, 0.8, 3, 0.8]] * 2 + [[1, 2, 1.5]]*2
+        sizes = [21, 45, 99, 153, 207, 261, 315],
+        ratios = [[1, 2, 0.5]] + [[1, 2, 0.5, 3, 1.0 / 3]] * 3 + [[1, 2, 0.5]] * 2,
+        steps = [8, 16, 32, 64, 100, 300],
+
         num_layers = len(ratios)
         sizes = list(zip(sizes[:-1], sizes[1:]))
         self._num_layers = num_layers
@@ -92,6 +95,7 @@ class Brunette(nn.HybridBlock):
         self.post_nms = post_nms
 
     def hybrid_forward(self, F, x, **kwargs):
+        """Hybrid forward"""
         features = self.features(x)
         cls_preds = [F.flatten(F.transpose(cp(feat), (0, 2, 3, 1)))
                      for feat, cp in zip(features, self.class_predictors)]
@@ -104,7 +108,6 @@ class Brunette(nn.HybridBlock):
         anchors = F.concat(*anchors, dim=1).reshape((1, -1, 4))
         if autograd.is_training():
             return [cls_preds, box_preds, anchors]
-
         bboxes = self.bbox_decoder(box_preds, anchors)
         cls_ids, scores = self.cls_decoder(F.softmax(cls_preds, axis=-1))
         results = []
@@ -115,7 +118,7 @@ class Brunette(nn.HybridBlock):
             per_result = F.concat(*[cls_id, score, bboxes], dim=-1)
             results.append(per_result)
         result = F.concat(*results, dim=1)
-        if 0 < self.nms_thresh < 1:
+        if self.nms_thresh > 0 and self.nms_thresh < 1:
             result = F.contrib.box_nms(
                 result, overlap_thresh=self.nms_thresh, topk=self.nms_topk, valid_thresh=0.01,
                 id_index=0, score_index=1, coord_start=2, force_suppress=False)
@@ -125,7 +128,6 @@ class Brunette(nn.HybridBlock):
         scores = F.slice_axis(result, axis=2, begin=1, end=2)
         bboxes = F.slice_axis(result, axis=2, begin=2, end=6)
         return ids, scores, bboxes
-
 if __name__ == "__main__":
     B = Brunette(['1', '2'])
     print(B)

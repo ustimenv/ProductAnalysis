@@ -371,7 +371,7 @@ class Setup:
                                                     img.shape,
                                                     np.array([dets[0]], ),
                                                     np.array([int(imgNumClass)]),
-                                                    index, normaliseBboxes=True)
+                                                    index, normaliseBboxes=False)
                     print(line)
                     fw.write(line)
             print('LST file(s) generated')
@@ -388,7 +388,7 @@ class Setup:
 if __name__ == "__main__":
     C = Setup(srcDir='/beta/Work/2/Train',
               dstDir='/beta/Work/2/Train',
-              postfix='Y')
+              postfix='Z')
     C.initLst()
 
     # SystemUtils.fullSetup(srcDir='/beta/Work/2/MlMasterDir',

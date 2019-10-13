@@ -4,6 +4,7 @@ from imgUtils import ImgUtils
 from altPredict import Predictor
 import matplotlib.pyplot as plt
 
+
 class Manager:
     def __init__(self):
         self.P = Predictor()
@@ -17,20 +18,23 @@ class Manager:
         return gmi
 
     def test(self):
-        # for imgName in glob.glob("/beta/Work/2/postbake/*.png", recursive=True):
-        for imgName in glob.glob("/beta/Work/2/Train/1/*.png", recursive=True):
+        for imgName in glob.glob("/beta/Work/2/postbake/*.png", recursive=True):
+        # for imgName in glob.glob("/beta/Work/2/Train/1/*.png", recursive=True):
             img = cv2.imread(imgName)
-            img = self.pad(img)
             # img = cv2.resize(img, dsize=None, fx=0.7, fy=0.7)
-            # img = img[50:-50, 500:850]
+            img = img[50:-50, 500:850]
             # img = cv2.resize(img, (300, 300))
             # out = []
-            out = self.P.predict(img, threshold=0.07)
+            out = self.P.predict(img, threshold=0.7)
             for i, x in enumerate(out):
                 print(x)
                 cid = x[0]
                 score = x[1]
                 roi = x[2]
+
+                centre = ImgUtils.getCentroid(roi)
+                cv2.circle(img, centre, 20, (255, 0, 255), 3)
+
                 label = '|{}|.{:.3f}'.format(cid, score)
                 ImgUtils.drawRect(roi, img, colour=(255, 0, 0))
                 cv2.putText(img=img, text=label, org=(int(roi[0]), int(roi[1])),

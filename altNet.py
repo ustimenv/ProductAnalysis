@@ -4,8 +4,8 @@ from mxnet.gluon import nn
 
 
 class SSDv1(nn.Block):
-    sizes = [[0.2, 0.272], [0.37, 0.447], [0.54, 0.619], [0.71, 0.79], [0.88, 0.961]]
-    ratios = [[1, 2, 0.5]] * 5
+    sizes = [[0.1, 0.15], [0.2, 0.25], [0.30, 0.34], [0.40, 0.50], [0.55, 0.7]]
+    ratios = [[1, 2, 1.4]] * 2 + [[1, 2, 0.8, 3, 0.8]] * 2 + [[1, 2, 1.5]] * 1
     anchorSeed = 3
 
     num_anchors = len(sizes[0]) + len(ratios[0]) - 1
