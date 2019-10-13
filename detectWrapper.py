@@ -84,7 +84,6 @@ class DetectorWrapper:
                         print("______Critical error", file=sys.stderr)
                     writeTime = curTime
 
-
                 feed, contrast = self.D.detect(feed)
                 if self.guiMode:
                     ImgUtils.show("Live", feed, 0, 0)
@@ -119,43 +118,6 @@ class DetectorWrapper:
             elif keyboard == ord('q'):
                 return
 
-    # def extractAndCopy(self):
-    #     counter=0
-    #     filepathPrefix = "/beta/Work/2/Train/raw/"
-    #     # for imgName in glob.glob("/beta/Work/2/Train/raw/*.png", recursive=True):
-    #     #     img = cv2.imread(imgName)
-    #     #     dets = self.D.detectDebug(img)
-    #     #
-    #     #     for roi in dets:
-    #     #         if roi[0]>460 and roi[3]<680:
-    #     #             continue
-    #     #         ImgUtils.drawRect(roi, img)
-    #     #         try:
-    #     #             counter += 1
-    #     #         except:
-    #     #             print("out of bounds")
-    #
-    #
-    #     counter=0
-    #     filepathPrefix = "/beta/Work/2/Train/postbake/"
-    #     for imgName in glob.glob("/beta/Work/2/postbake/*.png", recursive=True):
-    #         img = cv2.imread(imgName)
-    #         dets = self.D.detectDebug(img)
-    #         for (cX, cY), rad in dets:
-    #             if 600 < cX < 760 and 160 < cY < 560:
-    #                 cv2.imwrite(filepathPrefix+str(counter)+".png",
-    #                             ImgUtils.sampleAround(img, cX, cY, 300, 300))
-    #                 counter += 1
-    #
-    #         while True:
-    #             ImgUtils.show('Img', img, 0, 0)
-    #             # if X is not None:
-    #             #     ImgUtils.show('X', X, 800, 900)
-    #             key = cv2.waitKey(30)
-    #             if key == 27 or key == ord('v'):
-    #                 break
-    #             elif key == ord('q'):
-    #                 return
 
 
 if __name__ == "__main__":
@@ -165,6 +127,5 @@ if __name__ == "__main__":
     pos = args.position
     # pos = 'raw'
     D = DetectorWrapper(lineNumber=1, positionOnLine=pos, samplingPeriod=10000000, guiMode=True, port=-1)
-    D.extractAndCopy()
-    # D.video(pos)
+    D.video(pos)
     # D.testCamera()

@@ -1,7 +1,8 @@
 
-import numpy as np
 import mxnet as mx
-from brunette import Brunette
+import numpy as np
+
+from altNet import SSDv1
 
 
 class Predictor:
@@ -9,9 +10,8 @@ class Predictor:
         self.ctx = mx.gpu()
         self.classes = ['1', '2']
         self.Transer = FrameTransformer()
-        self.net = Brunette(classes=self.classes)
-
-        self.net.load_parameters('models/netV4-1--13.params', ctx=self.ctx)
+        self.net = SSDv1()
+        self.net.load_parameters('models/netV5-0--13.params', ctx=self.ctx)
         self.net.collect_params()
 
     def getBoxes(self, frame, threshold=0.2):
@@ -42,6 +42,7 @@ class Predictor:
         return out
 
 
+
 class FrameTransformer:
     def __init__(self, width=300, height=300):
         self._width = width
@@ -59,16 +60,15 @@ class FrameTransformer:
         return image
 
     def transform(self, image):
-        # from cv2 import resize
         # print(image.shape)
-        # image = resize(image, dsize=None, fx=0.8, fy=0.8)
+        # image = resize(image, dsize=(300, 300))
+        image = image[:, :, (2, 1, 0)]
         image = image.astype(np.float32)
         image -= np.array([123, 117, 104])
         image = np.transpose(image, (2, 0, 1))
         image = image[np.newaxis, :]
         image = mx.nd.array(image, ctx=mx.gpu())
         return image
-
 
 
 if __name__ == "__main__":

@@ -23,11 +23,12 @@ class Manager:
         # self.camera.open('rtsp://Kornfeil:Kornfeil7@10.150.10.153 /1')
 
     def slideshow(self):
-        for imgName in glob.glob("/beta/Work/1/raw/Full/*.png", recursive=True):
-        # for imgName in glob.glob("/beta/Work/1/MlWorkDir/TestFull/**/*.png", recursive=True):
+        for imgName in glob.glob("/beta/Work/2/postbake/*.png", recursive=True):
             img = cv2.imread(imgName)
-            img = cv2.resize(img, dsize=None, fx=0.8, fy=0.8)
+            # img = cv2.resize(img, dsize=None, fx=0.7, fy=0.7)
+            img = img[50:-50, 500:850]
             # img = cv2.resize(img, (800, 800))
+            # out = []
             out = self.P.getBoxes(img, threshold=0.07)
             for i, x in enumerate(out):
                 if i >5:
