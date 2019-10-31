@@ -16,12 +16,12 @@ class DetectorWrapper:
     # (line, production stage) -> (ip address)
     cameras = \
         {
-            (1, 'raw'     ) : 'rtsp://Operator:PHZOperator@10.150.10.155/1',
-            (1, 'postbake') : 'rtsp://Operator:PHZOperator@10.150.10.154/1',
-            (1, 'postbakeDebug') : 'rtsp://Operator:PHZOperator@10.150.10.153/1'
+            (1, 'raw'     ) : ('rtsp://Operator:PHZOperator@10.150.10.155/1', 7),
+            (1, 'postbake') : ('rtsp://Operator:PHZOperator@10.150.10.154/1', 7),
+            (1, 'brick') : ('rtsp://Operator:PHZOperator@10.150.10.156/1', 5)
         }
 
-    def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, frameRate=20, guiMode=False):
+    def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, guiMode=False):
         """
         :param lineNumber: production line this detector instance is looking at
         :param positionOnLine:  production stage, either raw dough or straight out of the oven
@@ -36,14 +36,13 @@ class DetectorWrapper:
         if not self.guiMode:
             self.writer = SocketWriter(port)
 
-        cameraIp = self.cameras[(lineNumber, positionOnLine)]
+        self.cameraIp, self.frameRate = self.cameras[(lineNumber, positionOnLine)]
+
         self.camera = cv2.VideoCapture()
-        # self.camera.open(cameraIp)
         self.filenamePrefix = str(positionOnLine) + '/' + 'PassiveSamples/'
-        self.frameRate = frameRate
 
     def video(self, name):
-        counter = 970
+        self.camera.open(self.cameraIp)
         writeTime = time.time()
         saveTime = time.time()
         prevTime = 0
@@ -60,20 +59,6 @@ class DetectorWrapper:
                 prevTime = time.time()
                 curTime = time.time()
 
-                # SAMPLE FOR ANALYSIS
-                if False and time.time() - saveTime >= 1 and self.D.numObjects-previousN>0: # 1=save every 1 second
-                    saveTime = time.time()
-                    try:
-                        previousN = self.D.numObjects
-                        f = '/beta/Work/2/'+name+'/'+str(counter)+'.png'
-                        cv2.imwrite(filename=f, img=feed)
-                        counter += 1
-                        if counter > 13000:
-                            return
-
-                    except Exception:
-                        traceback.print_exc()
-
                 # TRANSMIT FINDINGS
                 if not self.guiMode and curTime - writeTime >= self.samplingPeriod:
                     try:
@@ -87,7 +72,7 @@ class DetectorWrapper:
                 feed, contrast = self.D.detect(feed)
                 if self.guiMode:
                     ImgUtils.show("Live", feed, 0, 0)
-                    ImgUtils.show("Contrast", contrast, 0, 600)
+                    # ImgUtils.show("Contrast", contrast, 0, 600)
 
                 keyboard = cv2.waitKey(30)
                 if keyboard == 27:
@@ -95,37 +80,56 @@ class DetectorWrapper:
                 elif keyboard == ord('q'):
                     return
 
-    def testCamera(self):
+    def slideshow(self):
+        for i in range(1, 9988):
+            srcPath = '/beta/Work/2/raw2/'+str(i)+'.png'
+            img = cv2.imread(srcPath)
+            if img is None:
+                continue
+            feed, contrast = self.D.detect(img)
+
+            if True:
+                ImgUtils.show("Live", feed, 0, 0)
+                ImgUtils.show("Contrast", contrast, 700, 0)
+                keyboard = cv2.waitKey(13)
+                if keyboard == ord('v'):
+                    break
+                elif keyboard == ord('q'):
+                    return
+
+    @staticmethod
+    def testCamera():
         prevTime = 0
         counter = 1
+        camera = cv2.VideoCapture()
+        camera.open('rtsp://Operator:PHZOperator@10.150.10.155/1')
         while True:
-            _, feed = self.camera.read()
+            _, feed = camera.read()
             if feed is None:
                 continue
             timeElapsed = time.time() - prevTime
-            _, feed = self.camera.read()
-            if feed is None:
-                continue
-            if timeElapsed > 1.0/self.frameRate:
+            if timeElapsed > 1.0/7:
                 prevTime = time.time()
-                cv2.imwrite('postbake/'+str(counter)+'.png', feed)
+                # cv2.imwrite('/beta/Work/2/raw2/'+str(counter)+'.png', feed)
                 counter += 1
-
                 ImgUtils.show('Img', feed, 0, 0)
+            if counter > 10000:
+                print("Sufficient samples")
+                return
             keyboard = cv2.waitKey(30)
-            if keyboard == 27:
+            if keyboard == ord('v'):
                 break
             elif keyboard == ord('q'):
                 return
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--position', dest='position', type=str, default='postbake')
+    parser.add_argument('--position', dest='position', type=str, default='brick')
     args = parser.parse_args()
     pos = args.position
-    # pos = 'raw'
+    # pos = 'postbakeDebug'
     D = DetectorWrapper(lineNumber=1, positionOnLine=pos, samplingPeriod=10000000, guiMode=True, port=-1)
+    # D.slideshow()
     D.video(pos)
-    # D.testCamera()
+    # DetectorWrapper.testCamera()

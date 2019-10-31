@@ -30,13 +30,15 @@ class DetectorFactory:
                               'initialRoi' : (530, 150, 830, 1000)
                               },
 
-            (1, 'postbakeDebug'): {'dim1Lower': None, 'dim1Upper': None,
-                                   'dim2Lower': None,  'dim2Upper': None,
-                                   'upperKillzone': 0, 'lowerKillzone': 0,
-                                   'rightKillzone': 0, 'leftKillzone': 0,
-                                   'timeToDie': 1, 'timeToLive': 0,
-                                   'roiTrackingMode': False
-                                   }
+            (1, 'brick'): {'dim1Lower': 140, 'dim1Upper': 350,
+                             'dim2Lower': 140,  'dim2Upper': 550,
+                             'upperKillzone': INTMAX, 'lowerKillzone': -INTMAX,
+                             'rightKillzone': INTMAX, 'leftKillzone' : -INTMAX,
+                             'timeToDie': 5, 'timeToLive': 0,
+                             'name'         : 'brick1',
+                             'roiTrackingMode': True,
+                             'initialRoi' : (0, 0, 0, 0)
+                         }
         }
 
     def __init(self):

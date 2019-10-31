@@ -57,12 +57,21 @@ class Brunette(nn.HybridBlock):
         self.features = JafeatVgg()
 
         #ratios = [[1, 2, 1.4]] * 2 + [[1, 2, 0.8, 3, 0.8]] * 2 + [[1, 2, 1.5]]*2
-        sizes = [21, 45, 99, 153, 207, 261, 315],
-        ratios = [[1, 2, 0.5]] + [[1, 2, 0.5, 3, 1.0 / 3]] * 3 + [[1, 2, 0.5]] * 2,
-        steps = [8, 16, 32, 64, 100, 300],
+        sizes = [21, 45, 99, 153, 207, 261, 315]
+        ratios = [[1, 2, 0.5]] + [[1, 2, 0.5, 3, 1.0 / 3]] * 3 + [[1, 2, 0.5]] * 2
+        steps = [8, 16, 32, 64, 100, 300]
 
         num_layers = len(ratios)
+
+        assert len(sizes) == num_layers + 1
         sizes = list(zip(sizes[:-1], sizes[1:]))
+        assert isinstance(ratios, list), "Must provide ratios as list or list of list"
+        if not isinstance(ratios[0], (tuple, list)):
+            ratios = ratios * num_layers  # propagate to all layers if use same ratio
+        assert num_layers == len(sizes) == len(ratios), \
+            "Mismatched (number of layers) vs (sizes) vs (ratios): {}, {}, {}".format(
+                num_layers, len(sizes), len(ratios))
+        assert num_layers > 0, "SSD require at least one layer, suggest multiple."
         self._num_layers = num_layers
         self.classes = classes
         self.nms_thresh = nms_thresh
@@ -128,6 +137,10 @@ class Brunette(nn.HybridBlock):
         scores = F.slice_axis(result, axis=2, begin=1, end=2)
         bboxes = F.slice_axis(result, axis=2, begin=2, end=6)
         return ids, scores, bboxes
+
+
 if __name__ == "__main__":
     B = Brunette(['1', '2'])
     print(B)
+
+

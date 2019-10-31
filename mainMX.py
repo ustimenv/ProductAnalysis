@@ -26,17 +26,14 @@ class Manager:
         for imgName in glob.glob("/beta/Work/2/postbake/*.png", recursive=True):
             img = cv2.imread(imgName)
             # img = cv2.resize(img, dsize=None, fx=0.7, fy=0.7)
-            img = img[50:-50, 500:850]
+            img = img[:, 100:-300]
             # img = cv2.resize(img, (800, 800))
             # out = []
-            out = self.P.getBoxes(img, threshold=0.07)
+            out = self.P.predict(img, threshold=0.07)
             for i, x in enumerate(out):
-                if i >5:
-                    break
                 cid = x[0]
                 score = x[1]
                 roi = x[2:]
-                print(cid, score, [int(i) for i in roi])
 
                 label = '|{}|.{:.3f}'.format(cid, score)
                 ImgUtils.drawRect(roi, img, colour=(255, 0, 0))
@@ -86,60 +83,6 @@ class Manager:
     @staticmethod
     def box_to_rect(box, linewidth=1):
         return plt.Rectangle((box[0], box[1]), box[2] - box[0], box[3] - box[1], fill=False, linewidth=linewidth)
-
-    def test(self):
-        for i in range(0, 100):
-            name = '../samples/'+str(i)+'.png'
-            img = cv2.imread(name)
-            if img is None:
-                continue
-
-            plt.imshow(img)
-            out = self.P.getBoxes(img, 0.4)
-            print('\n', name[-7:-5])
-            topTen = 0
-            for x in out:
-                cid = x[0]
-                topTen+=1
-                score = x[1]
-                roi = x[2:]
-                plt.gca().add_patch(Manager.box_to_rect(roi))
-                if topTen < 4:
-                    label = '|{}|.{:.3f}'.format(cid, score)
-                    plt.text(roi[0], roi[1], label)
-                    print(cid , '===', score)
-            plt.show()
-
-    def test2(self):
-        for i in range(1, 3):
-            name = 'feed'+str(i)+'.png'
-            img = cv2.imread(name)
-            if img is None:
-                continue
-
-            plt.imshow(img)
-            out = self.P.getBoxes(img, 0.0)
-            print(name)
-            for x in out:
-                cid = x[0]
-                if cid == -1:
-                    continue
-                score = x[1]
-                roi = x[2:]
-                plt.gca().add_patch(Manager.box_to_rect(roi))
-                label = '|{}|.{:.3f}'.format(cid, score)
-                plt.text(roi[0], roi[1], label)
-                print(x)
-            plt.show()
-
-    def prepareTestData(self):
-        for i in range(0, 100):
-            name = '../samples/'+str(i)+'.png'
-            img = cv2.imread(name)
-            if img is None:
-                continue
-
-            # StandardDetectionTrans.flip4Way(name, '../samples/F' + str(i) + '.png')
 
 
 if __name__ == "__main__":

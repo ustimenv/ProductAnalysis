@@ -27,8 +27,8 @@ class Trainer:
                                             brightness=0.3, contrast=0.3, saturation=0.3, pca_noise=0.3, hue=0.3
                                             )
 
-        with autograd.train_mode():
-            _, _, anchors = self.net(mx.ndarray.zeros(shape=(self.batchSize, 3, 300, 300), ctx=self.ctx))
+        # with autograd.train_mode():
+        #     _, _, anchors = self.net(mx.ndarray.zeros(shape=(self.batchSize, 3, 300, 300), ctx=self.ctx))
 
         # self.T = TargetGenV2(anchors=anchors.as_in_context(mx.cpu()), height=300, width=300)
         print("2")
