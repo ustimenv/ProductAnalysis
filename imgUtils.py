@@ -1,5 +1,5 @@
 import cv2
-import numpy
+import numpy as np
 from skimage.measure import compare_ssim
 
 
@@ -46,9 +46,10 @@ class ImgUtils:
         cv2.circle(img=img, center=centre, radius=radius, thickness=4, color=colour)
 
     @staticmethod
-    def putText(img, text, coords, xOffset=0, yOffset=0, colour=(0, 255, 255)):
+    def putText(img, text, coords, xOffset=0, yOffset=0, colour=(0, 255, 255), thickness=2, fontSize=5):
+
         cv2.putText(img=img, text=text, org=(int(coords[0]+xOffset), int(coords[1]+yOffset)),
-                    fontFace=cv2.FONT_HERSHEY_PLAIN, thickness=1, lineType=cv2.LINE_4, fontScale=5, color=colour)
+                    fontFace=cv2.FONT_HERSHEY_PLAIN, thickness=thickness, lineType=cv2.LINE_4, fontScale=fontSize, color=colour)
 
     @staticmethod
     def returnUnchanged(x):
@@ -89,14 +90,47 @@ class ImgUtils:
             for line in lines:
                 rho = line[0][0]
                 theta = line[0][1]
-                a = numpy.math.cos(theta)
-                b = numpy.math.sin(theta)
+                a = np.math.cos(theta)
+                b = np.math.sin(theta)
                 x0 = a * rho
                 y0 = b * rho
                 pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
                 pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
                 cv2.line(img, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
         return img
+
+    @staticmethod
+    def hconcat(imgs, channel=None, pad=0):
+        if pad != 0:
+            h, w, c = imgs[0].shape
+            buffer = np.zeros(shape=(h, pad, c), dtype=imgs[0].dtype)
+            for i in range(len(imgs)-1):
+                imgs[i] = cv2.hconcat((imgs[i], buffer))
+
+        if channel is not None:
+            for i, img in enumerate(imgs):
+                imgs[i] = img[:, :, channel, np.newaxis]
+
+        return cv2.hconcat(imgs)
+
+
+
+    @staticmethod
+    def randomImage(red, blue, green, imgLike=None, dims=None, dtype=None):
+        if imgLike is not None:
+            h, w, c = imgLike.shape
+            gmi = np.zeros_like(imgLike)
+        else:
+            h, w, c = dims
+            gmi = np.zeros((h, w, c), dtype=dtype)
+
+        for i in range(h):
+            for j in range(w):
+                gmi[i, j] = (np.random.randint(blue[0], blue[1]),
+                             np.random.randint(green[0], green[1]),
+                             np.random.randint(red[0], red[1]))
+        return gmi
+
 
 if __name__ == "__main__":
     # SystemUtils.initDir('DataX', scaleFactor=5)

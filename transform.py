@@ -34,14 +34,14 @@ class Transformer:
     def postbake1Resize(self, img, ymin=150, ymax=1000, xmin=530, xmax=830):
         return img[ymin:ymax, xmin:xmax]
     #############################################
-    def brick1Transform(self, img):
+    def brick3Transform(self, img):
         contrast = cv2.inRange(img, lowerb=(0, 0, 0), upperb=(220, 200, 200))
         contrast = cv2.bitwise_not(contrast)
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 9))
         contrast = cv2.morphologyEx(contrast, cv2.MORPH_ERODE, kernel, iterations=1)
         return contrast
 
-    def brick1Resize(self, img, ymin=400, ymax=1080, xmin=400, xmax=1920):
+    def brick3Resize(self, img, ymin=400, ymax=1080, xmin=400, xmax=1920):
         return img[ymin:ymax, xmin:xmax]
     #############################################
     def correctLighting(self, img):

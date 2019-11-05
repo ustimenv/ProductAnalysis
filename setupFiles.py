@@ -255,40 +255,55 @@ class SystemUtils:
 
 
 class Setup:
-    def __init__(self, srcDir, dstDir, postfix, ):
+    def __init__(self, srcDir, dstDir, postfix):
         self.srcDir = srcDir
         self.postfix = postfix
         self.dstDir = dstDir
 
-        self.PerClass = {'0': {'name': 'raw',
+        self.PerClass = {   '0': {'name': 'raw',
+                                  'line' : 1,
                                'numberToCopy': 1,
 
-                          },
-                    '1': {'name': 'postbake',
-                          'numberToCopy': 3,
-                          },
+                                 },
+                            '1': {'name': 'postbake',
+                                  'line': 1,
+                                  'numberToCopy': 3,
+                                  },
+                            '2': {'name': 'brick',
+                                  'line': 3,
+                                  'numberToCopy': 3,
+                                  },
                     }
 
         self.extactors = dict()
         for cat in self.PerClass.keys():
-            self.extactors[cat] = DetectorFactory.getDetector(1, self.PerClass[cat]['name'])
+            self.extactors[cat] = DetectorFactory.getDetector(self.PerClass[cat]['line'], self.PerClass[cat]['name'])
 
-    def extractAndCopy(self):
+    def extractAndCopy(self, srcDirPath, extractor=0):
         counter=0
-        filepathPrefix = "/beta/Work/2/Train/raw/"
-        # for imgName in glob.glob("/beta/Work/2/Train/raw/*.png", recursive=True):
-        #     img = cv2.imread(imgName)
-        #     dets = self.D.detectDebug(img)
-        #
-        #     for roi in dets:
-        #         if roi[0]>460 and roi[3]<680:
-        #             continue
-        #         ImgUtils.drawRect(roi, img)
-        #         try:
-        #             counter += 1
-        #         except:
-        #             print("out of bounds")
 
+        for i in range(10000):
+            imgPath = srcDirPath + str(i)+'.png'
+            # print(imgPath)
+            img = cv2.imread(imgPath)
+            if img is None:
+                continue
+            dets = self.extactors[str(extractor)].detectDebug(img)
+            # print(len(dets))
+            for det in dets:
+                ImgUtils.drawRect(det, img)
+                try:
+                    counter += 1
+                except:
+                    print("out of bounds")
+            if True:
+                ImgUtils.show('Img', img, 0, 0)
+                key = cv2.waitKey(30)
+                if key == ord('v'):
+                    break
+                elif key == ord('q'):
+                    return
+        return
 
         counter=0
         filepathPrefix = "/beta/Work/2/Train/postbake/"
@@ -389,7 +404,9 @@ if __name__ == "__main__":
     C = Setup(srcDir='/beta/Work/2/Train',
               dstDir='/beta/Work/2/Train',
               postfix='Z')
-    C.initLst()
+    C.extractAndCopy(srcDirPath='/beta/Work/2/brick/', extractor=2)
+
+    # C.initLst()
 
     # SystemUtils.fullSetup(srcDir='/beta/Work/2/MlMasterDir',
     #                       dstDir='/beta/Work/2/MlWorkDir',

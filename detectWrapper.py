@@ -18,7 +18,7 @@ class DetectorWrapper:
         {
             (1, 'raw'     ) : ('rtsp://Operator:PHZOperator@10.150.10.155/1', 7),
             (1, 'postbake') : ('rtsp://Operator:PHZOperator@10.150.10.154/1', 7),
-            (1, 'brick') : ('rtsp://Operator:PHZOperator@10.150.10.156/1', 5)
+            (3, 'brick') : ('rtsp://Operator:PHZOperator@10.150.10.156/1', 5)
         }
 
     def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, guiMode=False):
@@ -32,6 +32,7 @@ class DetectorWrapper:
         self.samplingPeriod = samplingPeriod                    # number of seconds betweeen each transition
 
         self.D = DetectorFactory.getDetector(lineNumber, positionOnLine)
+        self.D.guiMode = guiMode
 
         if not self.guiMode:
             self.writer = SocketWriter(port)
@@ -41,7 +42,7 @@ class DetectorWrapper:
         self.camera = cv2.VideoCapture()
         self.filenamePrefix = str(positionOnLine) + '/' + 'PassiveSamples/'
 
-    def video(self, name):
+    def video(self):
         self.camera.open(self.cameraIp)
         writeTime = time.time()
         saveTime = time.time()
@@ -69,10 +70,10 @@ class DetectorWrapper:
                         print("______Critical error", file=sys.stderr)
                     writeTime = curTime
 
-                feed, contrast = self.D.detect(feed)
+                feed, contrast, _ = self.D.detect(feed)
                 if self.guiMode:
                     ImgUtils.show("Live", feed, 0, 0)
-                    # ImgUtils.show("Contrast", contrast, 0, 600)
+                    ImgUtils.show("Contrast", contrast, 0, 600)
 
                 keyboard = cv2.waitKey(30)
                 if keyboard == 27:
@@ -81,28 +82,32 @@ class DetectorWrapper:
                     return
 
     def slideshow(self):
-        for i in range(1, 9988):
+        for i in range(1, 10000):
             srcPath = '/beta/Work/2/raw2/'+str(i)+'.png'
             img = cv2.imread(srcPath)
             if img is None:
                 continue
-            feed, contrast = self.D.detect(img)
+            feed, contrast, areas = self.D.detect(img)
 
-            if True:
+            while True:
                 ImgUtils.show("Live", feed, 0, 0)
                 ImgUtils.show("Contrast", contrast, 700, 0)
-                keyboard = cv2.waitKey(13)
+                keyboard = cv2.waitKey(1)
                 if keyboard == ord('v'):
                     break
                 elif keyboard == ord('q'):
                     return
 
+                # if self.D.numObjects < 67:
+                #     break
+                # print(i)
+
     @staticmethod
     def testCamera():
         prevTime = 0
-        counter = 1
+        counter = 8850
         camera = cv2.VideoCapture()
-        camera.open('rtsp://Operator:PHZOperator@10.150.10.155/1')
+        camera.open('rtsp://Operator:PHZOperator@10.150.10.154/1')
         while True:
             _, feed = camera.read()
             if feed is None:
@@ -110,7 +115,7 @@ class DetectorWrapper:
             timeElapsed = time.time() - prevTime
             if timeElapsed > 1.0/7:
                 prevTime = time.time()
-                # cv2.imwrite('/beta/Work/2/raw2/'+str(counter)+'.png', feed)
+                # cv2.imwrite('/beta/Work/2/postbake2/'+str(counter)+'.png', feed)
                 counter += 1
                 ImgUtils.show('Img', feed, 0, 0)
             if counter > 10000:
@@ -129,7 +134,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     pos = args.position
     # pos = 'postbakeDebug'
-    D = DetectorWrapper(lineNumber=1, positionOnLine=pos, samplingPeriod=10000000, guiMode=True, port=-1)
+    D = DetectorWrapper(lineNumber=3, positionOnLine=pos, samplingPeriod=10000000, guiMode=True, port=-1)
     # D.slideshow()
-    D.video(pos)
+    D.video()
     # DetectorWrapper.testCamera()

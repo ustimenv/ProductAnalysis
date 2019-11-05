@@ -12,12 +12,13 @@ class Detector:
         self.dim2Lower = dim2Lower; self.dim2Upper = dim2Upper
         self.transformer = eval('Transformer(name)')
         self.detect = eval('self.' + name)
-        self.detectDebug = eval('self.'+name+'')
+        self.detectDebug = eval('self.'+name+'Debug')
         self.numObjects = -1
         self.tracker = Tracker(**kwargs)
 
         self.counter = 10000
         self.roiX1, self.roiY1, self.roiX2, self.roiY2 = initialRoi
+        self.guiMode = False
 
     def transform(self, feed):
         return self.transformer.transform(feed)
@@ -27,20 +28,24 @@ class Detector:
         img = self.transformer.resize(img)
         contrast = self.transform(img)
         rois = DetectionUtils.houghDetect(contrast, radiusMin=self.dim1Lower, radiusMax=self.dim1Upper)
-        tracked = self.tracker.track(rois)
+        tracked, newRois = self.tracker.track(rois)
         self.numObjects = self.tracker.N
 
-        for roi in rois:
+        if self.guiMode:
+            for roi in rois:
+                ImgUtils.drawRect(roi, img)
+                detectedCentroid = ImgUtils.getCentroid(roi)
+                ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
+                ImgUtils.putText(coords=(roi[0] + 50, roi[1] + 50), text=str(roi[2]-roi[0]), img=img, colour=(255, 255, 0), fontSize=3)
+            for objectId, centroid in tracked.items():
+                ImgUtils.drawCircle((centroid[0], centroid[1]), img)
+                ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
 
+        areas = []
+        for roi in newRois:
+            areas.append(ImgUtils.boxArea(roi[0], roi[1], roi[2], roi[3]))
 
-            ImgUtils.drawRect(roi, img)
-            detectedCentroid = ImgUtils.getCentroid(roi)
-            ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
-
-        for objectId, centroid in tracked.items():
-            ImgUtils.drawCircle((centroid[0], centroid[1]), img)
-            ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
-        return img, contrast
+        return img, contrast, areas
 
     def raw1(self, img):
         self.counter += 1
@@ -51,20 +56,66 @@ class Detector:
         rois = DetectionUtils.detectContours(contrast,
                                              widthLower=self.dim1Lower, widthUpper=self.dim1Upper,
                                              heightLower=self.dim2Lower, heigthUpper=self.dim2Upper)
-        tracked = self.tracker.track(rois)
+        tracked, _ = self.tracker.track(rois)
         self.numObjects = self.tracker.N
-        for roi in rois:
-            ImgUtils.drawRect(roi, img)
-            detectedCentroid = ImgUtils.getCentroid(roi)
-            ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
+        if self.guiMode:
+            for roi in rois:
+                ImgUtils.drawRect(roi, img)
+                detectedCentroid = ImgUtils.getCentroid(roi)
+                ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
+            for objectId, centroid in tracked.items():
+                ImgUtils.drawCircle((centroid[0], centroid[1]), img)
+                ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
 
-        for objectId, centroid in tracked.items():
-            ImgUtils.drawCircle((centroid[0], centroid[1]), img)
-            ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
-        return img, contrast
 
-    def brick1(self,  img):
-        img = img[350:, 350:-400, :]
+        return img, contrast, None
+
+    def brick3(self,  img):
+        img = img[550:, 350:-400, :]
+        contrast = np.copy(img)
+        contrast = self.transform(contrast)
+        contours, h = cv2.findContours(contrast, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        rois = []
+        for c in contours:
+            approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
+            x, y, w, h = cv2.boundingRect(c)
+            if len(approx) < 1 or w < 130 or h < 60:
+                continue
+            x1 = x; x2 = x1 + w
+            y1 = y; y2 = y1 + h
+            if y1 < 250 or x2 < 100:
+                continue
+            rois.append([x1, y1, x2, y2])
+            # targetHeight = 130
+            # numParts = h // targetHeight
+            # if numParts < 1:
+            #     rois.append([x1, y1, x2, y2])
+            # else:
+            #     step = (h % targetHeight)
+            #     y = y1
+            #     for i in range(0, numParts):
+            #         r = [x1, y, x2, y + targetHeight + step]
+            #         y += (step + targetHeight)
+            #         rois.append(r)
+
+        tracked, _ = self.tracker.track(rois)
+        self.numObjects = self.tracker.N
+        if self.guiMode:
+            for roi in rois:
+                ImgUtils.drawRect(roi, img)
+                detectedCentroid = ImgUtils.getCentroid(roi)
+                ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
+            for objectId, centroid in tracked.items():
+                ImgUtils.drawCircle((centroid[0], centroid[1]), img)
+                ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
+
+        return img, contrast, None
+
+    def postbake1Sample(self):
+        pass
+
+    def brick3Debug(self,  img):
+        # img = img[350:, 350:-400, :]
         contrast = np.copy(img)
         contrast = self.transform(contrast)
         contours, h = cv2.findContours(contrast, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -76,7 +127,9 @@ class Detector:
                 continue
             x1 = x; x2 = x1 + w
             y1 = y; y2 = y1 + h
-            if y1 < 450 or x2 < 100:
+            if w>250 or h>250:
+                print(w, h)
+            if x2 < 250:# or y2 < 100:
                 continue
             targetHeight = 130
             numParts = h // targetHeight
@@ -89,16 +142,7 @@ class Detector:
                     r = [x1, y, x2, y + targetHeight + step]
                     y += (step + targetHeight)
                     rois.append(r)
-        tracked = self.tracker.track(rois)
-        self.numObjects = self.tracker.N
-        for roi in rois:
-            ImgUtils.drawRect(roi, img)
-            detectedCentroid = ImgUtils.getCentroid(roi)
-            ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
-        for objectId, centroid in tracked.items():
-            ImgUtils.drawCircle((centroid[0], centroid[1]), img)
-            ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
-        return img, contrast
+        return rois
 
     def postbake1Debug(self, feed):
         radiusMin = self.dim1Lower
