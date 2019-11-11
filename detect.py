@@ -19,6 +19,8 @@ class Detector:
         self.counter = 10000
         self.roiX1, self.roiY1, self.roiX2, self.roiY2 = initialRoi
         self.guiMode = False
+        self.averageColour = [0, 0, 0]
+        self.averageSize = 0
 
     def transform(self, feed):
         return self.transformer.transform(feed)
@@ -26,13 +28,15 @@ class Detector:
     def postbake1(self, img):
         hBefore, wBefore, _ = img.shape
         img = self.transformer.resize(img)
+        origImg = np.copy(img)
         contrast = self.transform(img)
-        rois = DetectionUtils.houghDetect(contrast, radiusMin=self.dim1Lower, radiusMax=self.dim1Upper)
+        rois, radii = DetectionUtils.houghDetect(contrast, radiusMin=self.dim1Lower, radiusMax=self.dim1Upper)
         tracked, newRois = self.tracker.track(rois)
         self.numObjects = self.tracker.N
 
         if self.guiMode:
             for roi in rois:
+
                 ImgUtils.drawRect(roi, img)
                 detectedCentroid = ImgUtils.getCentroid(roi)
                 ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
@@ -41,11 +45,34 @@ class Detector:
                 ImgUtils.drawCircle((centroid[0], centroid[1]), img)
                 ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
 
-        areas = []
-        for roi in newRois:
-            areas.append(ImgUtils.boxArea(roi[0], roi[1], roi[2], roi[3]))
+        out = []
 
-        return img, contrast, areas
+        for roi in newRois:
+            colour = self.colour(origImg[roi[1]:roi[3], roi[0]:roi[2]])
+            self.averageColour[0] += colour[0]; self.averageColour[1] += colour[1]; self.averageColour[2] += colour[2]
+            self.averageSize += roi[3]-roi[1]
+
+        return img, contrast, out
+
+    def colour2(self, a):
+        a2D = a.reshape(-1, a.shape[-1])
+        col_range = (256, 256, 256)  # generically : a2D.max(0)+1
+        a1D = np.ravel_multi_index(a2D.T, col_range)
+        if len(a1D) >0:
+            ss = np.unravel_index(np.bincount(a1D).argmax(), col_range)
+            print(ss)
+            return ss
+        else:
+            return [0, 0, 0]
+
+    def colour(self, img):
+        x= (128, 128, 128)
+        try:
+            colors, count = np.unique(img.reshape(-1, img.shape[-1]), axis=0, return_counts=True)
+            x = colors[count.argmax()]
+        except Exception as e:
+            pass
+        return x
 
     def raw1(self, img):
         self.counter += 1
@@ -68,7 +95,7 @@ class Detector:
                 ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
 
 
-        return img, contrast, None
+        return img, contrast, []
 
     def brick3(self,  img):
         img = img[550:, 350:-400, :]
@@ -109,7 +136,7 @@ class Detector:
                 ImgUtils.drawCircle((centroid[0], centroid[1]), img)
                 ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
 
-        return img, contrast, None
+        return img, contrast, []
 
     def postbake1Sample(self):
         pass
@@ -169,7 +196,7 @@ class Detector:
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
         contrast = cv2.morphologyEx(contrast, cv2.MORPH_DILATE, kernel, iterations=2)
         contrast = cv2.threshold(src=contrast, maxval=255, thresh=200, type=cv2.THRESH_BINARY)[1]
-        rois = DetectionUtils.houghDetect(contrast, 70, 140)
+        rois, _ = DetectionUtils.houghDetect(contrast, 70, 140)
         return rois
 
 
@@ -184,6 +211,7 @@ class DetectionUtils:
         circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 150, param1=101, param2=11,
                                    minRadius=radiusMin, maxRadius=radiusMax)
         rois = []
+        radii = []
         if circles is not None:
             circles = np.uint16(np.around(circles))
             for i in circles[0, :]:
@@ -194,7 +222,8 @@ class DetectionUtils:
                     cv2.circle(img, center, radius, (255, 0, 255), 3)
                     roi = ImgUtils.circleToRectabgle(center, radius)
                     rois.append(roi)
-        return rois
+                    radii.append(radius)
+        return rois, radii
 
     @staticmethod
     def detectContours(frame, widthLower, widthUpper, heightLower, heigthUpper):

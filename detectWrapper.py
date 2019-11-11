@@ -16,9 +16,9 @@ class DetectorWrapper:
     # (line, production stage) -> (ip address)
     cameras = \
         {
-            (1, 'raw'     ) : ('rtsp://Operator:PHZOperator@10.150.10.155/1', 7),
-            (1, 'postbake') : ('rtsp://Operator:PHZOperator@10.150.10.154/1', 7),
-            (3, 'brick') : ('rtsp://Operator:PHZOperator@10.150.10.156/1', 5)
+            (1, 0) : ('rtsp://Operator:PHZOperator@10.150.10.155/1', 7),  # raw
+            (1, 1) : ('rtsp://Operator:PHZOperator@10.150.10.154/1', 7),  # postbake
+            (3, 0) : ('rtsp://Operator:PHZOperator@10.150.10.156/1', 5)   # brick
         }
 
     def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, guiMode=False):
@@ -60,20 +60,33 @@ class DetectorWrapper:
                 prevTime = time.time()
                 curTime = time.time()
 
-                # TRANSMIT FINDINGS
-                if not self.guiMode and curTime - writeTime >= self.samplingPeriod:
-                    try:
-                        self.writer.write(str(self.D.numObjects-previousN))
-                        previousN = self.D.numObjects
-                        self.writer.flush()
-                    except:
-                        print("______Critical error", file=sys.stderr)
-                    writeTime = curTime
+                feed, contrast, out = self.D.detect(feed)
 
-                feed, contrast, _ = self.D.detect(feed)
                 if self.guiMode:
                     ImgUtils.show("Live", feed, 0, 0)
                     ImgUtils.show("Contrast", contrast, 0, 600)
+
+                # TRANSMIT FINDINGS
+                if not self.guiMode and curTime - writeTime >= self.samplingPeriod:
+                    try:
+                        num = self.D.numObjects-previousN
+                        transmission = str(num) + '#'
+
+                        if num > 0:
+                            size = int(self.D.averageSize / num)
+                            colour = np.true_divide(self.D.averageColour, num)
+                            colour = [str(int(i)) for i in colour]
+                            transmission += (str(size)+'#'+str('|'.join(colour)))
+                            self.D.averageColour = [0, 0, 0]
+                            self.D.averageSize = 0
+
+                        self.writer.write(transmission)
+                        previousN = self.D.numObjects
+                        self.writer.flush()
+
+                    except Exception as e:
+                        print("______Critical error", file=sys.stderr)
+                    writeTime = curTime
 
                 keyboard = cv2.waitKey(30)
                 if keyboard == 27:
@@ -83,11 +96,11 @@ class DetectorWrapper:
 
     def slideshow(self):
         for i in range(1, 10000):
-            srcPath = '/beta/Work/2/raw2/'+str(i)+'.png'
+            srcPath = '/beta/Work/2/postbake2/'+str(i)+'.png'
             img = cv2.imread(srcPath)
             if img is None:
                 continue
-            feed, contrast, areas = self.D.detect(img)
+            feed, contrast, out = self.D.detect(img)
 
             while True:
                 ImgUtils.show("Live", feed, 0, 0)
@@ -97,10 +110,6 @@ class DetectorWrapper:
                     break
                 elif keyboard == ord('q'):
                     return
-
-                # if self.D.numObjects < 67:
-                #     break
-                # print(i)
 
     @staticmethod
     def testCamera():
@@ -130,11 +139,9 @@ class DetectorWrapper:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--position', dest='position', type=str, default='brick')
-    args = parser.parse_args()
-    pos = args.position
+
     # pos = 'postbakeDebug'
-    D = DetectorWrapper(lineNumber=3, positionOnLine=pos, samplingPeriod=10000000, guiMode=True, port=-1)
-    # D.slideshow()
-    D.video()
+    D = DetectorWrapper(lineNumber=1, positionOnLine=1, samplingPeriod=10000000, guiMode=True, port=-1)
+    D.slideshow()
+    # D.video()
     # DetectorWrapper.testCamera()

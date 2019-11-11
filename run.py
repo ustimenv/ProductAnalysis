@@ -5,8 +5,8 @@ from detectWrapper import DetectorWrapper
 
 def parseArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--line-number',   dest='lineNumber',   type=int, default=1)
-    parser.add_argument('--position',      dest='position',     type=str, default='postbake')
+    parser.add_argument('--line-number',   dest='lineNumber',   type=int)
+    parser.add_argument('--position',      dest='position',     type=int)
     parser.add_argument('--sampling-period', dest='samplingRate', type=int, default=1)
     parser.add_argument('--port',          dest='port',         type=int, default=-1)
 
