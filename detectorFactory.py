@@ -17,7 +17,9 @@ class DetectorFactory:
                          'timeToDie': 1, 'timeToLive': 0,
                          'name'         : 'raw1',
                          'roiTrackingMode': True,
-                         'initialRoi' : (250, 300, 760, 670)
+                         'initialRoi' : (250, 300, 760, 670),
+                         'dimensionTracking' : False,
+                         'colourTracking'    : False
                          },
 
             (1, 1): {'dim1Lower': 40, 'dim1Upper': 150,
@@ -27,7 +29,9 @@ class DetectorFactory:
                               'timeToDie': 1, 'timeToLive': 0,
                               'name' : 'postbake1',
                               'roiTrackingMode': False,
-                              'initialRoi' : (530, 150, 830, 1000)
+                              'initialRoi' : (530, 150, 830, 1000),
+                                 'dimensionTracking': True,
+                                 'colourTracking': True
                               },
 
             (3, 0): {'dim1Lower': 140, 'dim1Upper': 350,
@@ -37,7 +41,9 @@ class DetectorFactory:
                              'timeToDie': 5, 'timeToLive': 0,
                              'name'         : 'brick3',
                              'roiTrackingMode': True,
-                             'initialRoi' : (0, 0, 0, 0)
+                             'initialRoi' : (0, 0, 0, 0),
+                             'dimensionTracking': False,
+                             'colourTracking': False
                          }
         }
 

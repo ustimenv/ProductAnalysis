@@ -21,6 +21,8 @@ class Detector:
         self.guiMode = False
         self.averageColour = [0, 0, 0]
         self.averageSize = 0
+        self.dimTracking = kwargs.get("dimensionTracking")
+        self.colourTracking = kwargs.get("colourTracking")
 
     def transform(self, feed):
         return self.transformer.transform(feed)

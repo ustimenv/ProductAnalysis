@@ -48,6 +48,7 @@ class DetectorWrapper:
         saveTime = time.time()
         prevTime = 0
         previousN = 0
+
         while True:
             sys.stderr.flush()
             sys.stdout.flush()
@@ -72,11 +73,10 @@ class DetectorWrapper:
                         num = self.D.numObjects-previousN
                         transmission = str(num) + '#'
 
-                        if num > 0:
+                        if num > 0 and self.D.colourTracking and self.D.dimTracking:
                             size = int(self.D.averageSize / num)
-                            colour = np.true_divide(self.D.averageColour, num)
-                            colour = [str(int(i)) for i in colour]
-                            transmission += (str(size)+'#'+str('|'.join(colour)))
+                            colour = [str(int(i / num)) for i in self.D.averageColour]
+                            transmission += (str(size) + '#' + str(colour[2])+'|'+str(colour[1])+'|'+str(colour[0])+'|')
                             self.D.averageColour = [0, 0, 0]
                             self.D.averageSize = 0
 
@@ -95,12 +95,27 @@ class DetectorWrapper:
                     return
 
     def slideshow(self):
+        previousN = 0
         for i in range(1, 10000):
             srcPath = '/beta/Work/2/postbake2/'+str(i)+'.png'
             img = cv2.imread(srcPath)
             if img is None:
                 continue
             feed, contrast, out = self.D.detect(img)
+
+            if i % 40 == 0:
+                num = self.D.numObjects - previousN
+                transmission = str(num) + '#'
+
+                if num > 0 and self.D.colourTracking and self.D.dimTracking:
+                    size = int(self.D.averageSize / num)
+                    colour = [str(int(i/num)) for i in self.D.averageColour]
+                    transmission += (str(size) + '#' + str(colour[2]) + '|' + str(colour[1]) + '|' + str(colour[0]) + '|')
+                    self.D.averageColour = [0, 0, 0]
+                    self.D.averageSize = 0
+
+                previousN = self.D.numObjects
+                print(transmission)
 
             while True:
                 ImgUtils.show("Live", feed, 0, 0)

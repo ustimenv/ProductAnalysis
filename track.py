@@ -13,7 +13,7 @@ from imgUtils import ImgUtils
 
 class Tracker:
     def __init__(self, lowerKillzone, upperKillzone, leftKillzone, rightKillzone, timeToDie, timeToLive,
-                 roiTrackingMode):
+                 roiTrackingMode, **kwargs):
         self.nextId = 0                         # an ID number we will assign to the next object we detect(!=numObjects)
         self.N = 0                              # actual number of objects that we have so far counted,
                                                 # only incremented once we are sure we are seeing an actual object
