@@ -99,8 +99,10 @@ class Detector:
 
         return img, contrast, []
 
-    def brick3(self,  img):
-        img = img[550:, 350:-400, :]
+    def brick0(self,  img):
+        # img = img[550:, 350:-400, :]
+        img = img[100:, :, :]
+
         contrast = np.copy(img)
         contrast = self.transform(contrast)
         contours, h = cv2.findContours(contrast, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -143,7 +145,7 @@ class Detector:
     def postbake1Sample(self):
         pass
 
-    def brick3Debug(self,  img):
+    def brick0Debug(self,  img):
         # img = img[350:, 350:-400, :]
         contrast = np.copy(img)
         contrast = self.transform(contrast)

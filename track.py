@@ -12,50 +12,49 @@ from imgUtils import ImgUtils
 
 
 class Tracker:
-    def __init__(self, lowerKillzone, upperKillzone, leftKillzone, rightKillzone, timeToDie, timeToLive,
-                 roiTrackingMode, **kwargs):
+    def __init__(self, lowerBound, upperBound, leftBound, rightBound, timeToDie, timeToLive, roiTrackingMode):
         self.nextId = 0                         # an ID number we will assign to the next object we detect(!=numObjects)
         self.N = 0                              # actual number of objects that we have so far counted,
                                                 # only incremented once we are sure we are seeing an actual object
 
-        self.trackedCentroids = OrderedDict()   # objectID -> (centroidX, centroidY)
+        self.trackedRois = OrderedDict()        # objectID -> (centroidX, centroidY)
         self.missing = OrderedDict()            # objectID -> number of consecutive frames an object has been missing
 
         self.timeToDie = timeToDie              # consecutive frames till we stop tracking the object
         self.timeToLive = timeToLive            # consecutive frames till we start tracking the object
         self.roiTrackingMode = roiTrackingMode  # whether to track centroids or rois
 
-        self.upperKillzone = upperKillzone                # border beyond which we do not accept any new detections
-        self.lowerKillzone = lowerKillzone
-        self.leftKillzone = leftKillzone
-        self.rightKillzone = rightKillzone
+        self.upperBound = upperBound      # border beyond which we do not accept any new detections
+        self.lowerBound = lowerBound
+        self.leftBound = leftBound
+        self.rightBound = rightBound
 
         # if we are tracking rois, convert them to centroids
-        if roiTrackingMode:
-            self.roiConverter = self._roisToCentroidsHelper
-        else:
-            self.roiConverter = ImgUtils.returnUnchanged
+        # if roiTrackingMode:
+        #     self.roiConverter = self._roisToCentroidsHelper
+        # else:
+        #     self.roiConverter = ImgUtils.returnUnchanged
 
     def register(self, roi):
-        bufferCondition = self.lowerKillzone < roi[1] < self.upperKillzone \
-                          and self.leftKillzone < roi[0] < self.rightKillzone
+        bufferCondition = self.lowerBound < (roi[1]+roi[3])/2 < self.upperBound \
+                          and self.leftBound < (roi[0]+roi[2])/2 < self.rightBound
 
         if bufferCondition:
-            self.trackedCentroids[self.nextId] = roi
+            self.trackedRois[self.nextId] = roi
             self.missing[self.nextId] = 0
             self.nextId += 1
             self.N += 1
             return roi
 
     def deregister(self, objectId):
-        del self.trackedCentroids[objectId]
+        del self.trackedRois[objectId]
         del self.missing[objectId]
 
-    def _roisToCentroidsHelper(self, rois):
-        centroids = np.zeros((len(rois), 2), dtype="int")
-        for i, roi in enumerate(rois):
-            centroids[i] = ImgUtils.getCentroid(roi)
-        return centroids
+    # def _roisToCentroidsHelper(self, rois):
+    #     centroids = np.zeros((len(rois), 2), dtype="int")
+    #     for i, roi in enumerate(rois):
+    #         centroids[i] = ImgUtils.getCentroid(roi)
+    #     return centroids
 
     def track(self, detected):
         newDetections = []
@@ -66,21 +65,21 @@ class Tracker:
                 if self.missing[objectId] > self.timeToDie:
                     self.deregister(objectId)
         else:
-            detections = self.roiConverter(detected)
+            # detections = self.roiConverter(detected)
 
             # no centroids currently tracked, so start
-            if len(self.trackedCentroids) == 0:
-                for det in detections:
+            if len(self.trackedRois) == 0:
+                for det in detected:
                     det = self.register(det)
                     if det is not None:
                         newDetections.append(det)
 
             # match detected centroids with tracked
             else:
-                objectIds = list(self.trackedCentroids.keys())
-                objectCentroids = list(self.trackedCentroids.values())
+                objectIds = list(self.trackedRois.keys())
+                objectRois = list(self.trackedRois.values())
 
-                D = cdist(np.array(objectCentroids), detections)
+                D = cdist(np.array(objectRois), detected)
                 rows = D.min(axis=1).argsort()
                 cols = D.argmin(axis=1)[rows]
 
@@ -93,8 +92,11 @@ class Tracker:
                         continue
                     objectId = objectIds[row]
                     #####
-                    if abs(self.trackedCentroids[objectId][1]-detections[col][1]) < 100:
-                        self.trackedCentroids[objectId] = detections[col]
+                    if abs(
+                            ImgUtils.getCentroid(self.trackedRois[objectId])[1] -
+                            ImgUtils.getCentroid(detected[col])[1]) < 100:
+
+                        self.trackedRois[objectId] = detected[col]
                         self.missing[objectId] = 0
                         usedRows.add(row)
                         usedCols.add(col)
@@ -117,8 +119,8 @@ class Tracker:
                 # register each new input centroid as a trackable object
                 else:
                     for col in unusedCols:
-                        det = self.register(detections[col])
+                        det = self.register(detected[col])
                         if det is not None:
                             newDetections.append(det)
 
-        return self.trackedCentroids, newDetections
+        return self.trackedRois, newDetections

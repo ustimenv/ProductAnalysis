@@ -97,7 +97,7 @@ class DetectorWrapper:
     def slideshow(self):
         previousN = 0
         for i in range(1, 10000):
-            srcPath = '/beta/Work/2/postbake2/'+str(i)+'.png'
+            srcPath = '/beta/Work/2/brick/'+str(i)+'.png'
             img = cv2.imread(srcPath)
             if img is None:
                 continue
@@ -106,25 +106,19 @@ class DetectorWrapper:
             if i % 40 == 0:
                 num = self.D.numObjects - previousN
                 transmission = str(num) + '#'
-
-                if num > 0 and self.D.colourTracking and self.D.dimTracking:
-                    size = int(self.D.averageSize / num)
-                    colour = [str(int(i/num)) for i in self.D.averageColour]
-                    transmission += (str(size) + '#' + str(colour[2]) + '|' + str(colour[1]) + '|' + str(colour[0]) + '|')
-                    self.D.averageColour = [0, 0, 0]
-                    self.D.averageSize = 0
-
                 previousN = self.D.numObjects
-                print(transmission)
-
+                # print(transmission)
             while True:
                 ImgUtils.show("Live", feed, 0, 0)
                 ImgUtils.show("Contrast", contrast, 700, 0)
+
                 keyboard = cv2.waitKey(1)
+                if keyboard == ord('q'):
+                    return
+                break
                 if keyboard == ord('v'):
                     break
-                elif keyboard == ord('q'):
-                    return
+
 
     @staticmethod
     def testCamera():
@@ -156,7 +150,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # pos = 'postbakeDebug'
-    D = DetectorWrapper(lineNumber=1, positionOnLine=1, samplingPeriod=10000000, guiMode=True, port=-1)
-    D.slideshow()
-    # D.video()
+    D = DetectorWrapper(lineNumber=1, positionOnLine=0, samplingPeriod=10000000, guiMode=True, port=-1)
+    # D.slideshow()
+    D.video()
     # DetectorWrapper.testCamera()

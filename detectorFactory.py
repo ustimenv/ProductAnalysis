@@ -1,4 +1,4 @@
-from detect import Detector
+import importlib
 
 INTMAX = 2** 60
 
@@ -39,7 +39,7 @@ class DetectorFactory:
                              'upperKillzone': INTMAX, 'lowerKillzone': -INTMAX,
                              'rightKillzone': INTMAX, 'leftKillzone' : -INTMAX,
                              'timeToDie': 5, 'timeToLive': 0,
-                             'name'         : 'brick3',
+                             'name'         : 'brick0',
                              'roiTrackingMode': True,
                              'initialRoi' : (0, 0, 0, 0),
                              'dimensionTracking': False,
@@ -51,6 +51,15 @@ class DetectorFactory:
         pass
 
     @staticmethod
-    def getDetector(lineNumber, positionOnLine):
-        return Detector(**DetectorFactory.args[(lineNumber, positionOnLine)])
+    def getDetector(line, position):
+        line = 'Line'+str(line)
+        detector = line+'/detect'+str(position)+'.py'
+
+        from importlib.machinery import SourceFileLoader
+        foo = SourceFileLoader(line, detector).load_module()
+        return foo.Detector()
+
+    # @staticmethod
+    # def getDetector(lineNumber, positionOnLine):
+    #     return Detector(**DetectorFactory.args[(lineNumber, positionOnLine)])
 
