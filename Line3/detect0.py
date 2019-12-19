@@ -22,8 +22,11 @@ class Detector:
         # contrast = cv2.bitwise_not(contrast)
         # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 9))
         # contrast = cv2.morphologyEx(contrast, cv2.MORPH_ERODE, kernel, iterations=1)
-        contrast = cv2.inRange(img, lowerb=(0, 130, 150), upperb=(200, 255, 255 ))
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+
+        # contrast = cv2.inRange(img, lowerb=(0, 130, 150), upperb=(200, 255, 255 ))
+        contrast = cv2.inRange(img, lowerb=(0, 0, 0), upperb=(200, 200, 200))
+        cv2.bitwise_not(src=contrast, dst=contrast)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 13))
         cv2.morphologyEx(src=contrast, dst=contrast, op=cv2.MORPH_ERODE, kernel=kernel, iterations=1)
         cv2.medianBlur(src=contrast, dst=contrast, ksize=11)
 
