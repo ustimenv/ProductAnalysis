@@ -71,14 +71,16 @@ class DetectorWrapper:
                 if not self.guiMode and curTime - writeTime >= self.samplingPeriod:
                     try:
                         num = self.D.numObjects-previousN
+                        if num == 1:
+                            num = 0
                         transmission = str(num) + '#'
                         print('Writing ', transmission)
-                        if num > 0 and self.D.colourTracking and self.D.dimTracking:
-                            size = int(self.D.averageSize / num)
-                            colour = [str(int(i / num)) for i in self.D.averageColour]
-                            transmission += (str(size) + '#' + str(colour[2])+'|'+str(colour[1])+'|'+str(colour[0])+'|')
-                            self.D.averageColour = [0, 0, 0]
-                            self.D.averageSize = 0
+                        # if num > 0 and self.D.colourTracking and self.D.dimTracking:
+                        #     size = int(self.D.averageSize / num)
+                        #     colour = [str(int(i / num)) for i in self.D.averageColour]
+                        #     transmission += (str(size) + '#' + str(colour[2])+'|'+str(colour[1])+'|'+str(colour[0])+'|')
+                        #     self.D.averageColour = [0, 0, 0]
+                        #     self.D.averageSize = 0
 
                         self.writer.write(transmission)
                         previousN = self.D.numObjects
@@ -151,6 +153,6 @@ if __name__ == "__main__":
 
     # pos = 'postbakeDebug'
     D = DetectorWrapper(lineNumber=3, positionOnLine=0, samplingPeriod=10000000, guiMode=True, port=-1)
-    # D.slideshow()
-    D.video()
+    D.slideshow()
+    # D.video()
     # DetectorWrapper.testCamera()
