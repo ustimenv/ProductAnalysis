@@ -68,8 +68,8 @@ class Detector:
                 ImgUtils.drawCircle((centroid[0], centroid[1]), img)
                 ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(0, 255, 0))
 
-        for roi in newRois:
-            print(roi[3]-roi[1], roi[2]-roi[0])
+        # for roi in newRois:
+        #     print(roi[3]-roi[1], roi[2]-roi[0])
 
         return img, contrast, []
 

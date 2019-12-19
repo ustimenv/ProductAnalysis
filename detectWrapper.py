@@ -72,7 +72,7 @@ class DetectorWrapper:
                     try:
                         num = self.D.numObjects-previousN
                         transmission = str(num) + '#'
-
+                        print('Writing ', transmission)
                         if num > 0 and self.D.colourTracking and self.D.dimTracking:
                             size = int(self.D.averageSize / num)
                             colour = [str(int(i / num)) for i in self.D.averageColour]
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # pos = 'postbakeDebug'
-    D = DetectorWrapper(lineNumber=1, positionOnLine=0, samplingPeriod=10000000, guiMode=True, port=-1)
+    D = DetectorWrapper(lineNumber=3, positionOnLine=0, samplingPeriod=10000000, guiMode=True, port=-1)
     # D.slideshow()
     D.video()
     # DetectorWrapper.testCamera()
