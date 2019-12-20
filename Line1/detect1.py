@@ -3,16 +3,16 @@ import numpy as np
 
 from imgUtils import ImgUtils
 from track import Tracker
+from detectionBase import BaseDetector
 
 
-class Detector:
+class Detector(BaseDetector):
     def __init__(self):
-        self.dim1Lower = 40
-        self.dim1Upper = 150
-        self.dim2Lower = None
-        self.dim2Upper = None
-
-        self.numObjects = -1
+        super(Detector, self).__init__()
+        # self.sizeLower = 40
+        # self.sizeUpper = 150
+        self.sizeLower = 60
+        self.sizeUpper = 230
 
         trackerArgs = { 'upperBound': 300, 'lowerBound': 220,
                         'rightBound': 270, 'leftBound': 30,
@@ -21,12 +21,10 @@ class Detector:
          }
 
         self.tracker = Tracker(**trackerArgs)
-        self.counter = 10000
 
         self.guiMode = False
         self.averageColour = [0, 0, 0]
         self.averageSize = 0
-
 
     def transform(self, img):
         # contrast = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)[:, :, 2]
@@ -45,34 +43,34 @@ class Detector:
         img = self.resize(img)
         origImg = np.copy(img)
         contrast = self.transform(img)
-        rois, radii = DetectionUtils.houghDetect(contrast, radiusMin=self.dim1Lower, radiusMax=self.dim1Upper)
+        rois, radii = DetectionUtils.houghDetect(contrast, radiusMin=self.sizeLower, radiusMax=self.sizeUpper)
         tracked, newRois = self.tracker.track(rois)
         self.numObjects = self.tracker.N
 
         if self.guiMode:
             for roi in rois:
-
                 ImgUtils.drawRect(roi, img)
                 detectedCentroid = ImgUtils.getCentroid(roi)
                 ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
                 ImgUtils.putText(coords=(roi[0] + 50, roi[1] + 50), text=str(roi[2]-roi[0]), img=img, colour=(255, 255, 0), fontSize=3)
+
             for objectId, centroid in tracked.items():
                 ImgUtils.drawCircle((centroid[0], centroid[1]), img)
                 ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(255, 0, 0))
 
-        out = []
+        # out = []
 
         # for roi in newRois:
             # colour = self.colour(origImg[roi[1]:roi[3], roi[0]:roi[2]])
-            # self.averageColour[0] += colour[0]; self.averageColour[1] += colour[1]; self.averageColour[2] += colour[2]
+            # self.averageColour[0] += colour[0] self.averageColour[1] += colour[1] self.averageColour[2] += colour[2]
             # self.averageSize += roi[3]-roi[1]
 
-        return img, contrast, out
+        return img, contrast, []
 
 
     def detectDebug(self, feed):
-        radiusMin = self.dim1Lower
-        radiusMax = self.dim1Upper
+        radiusMin = self.sizeLower
+        radiusMax = self.sizeUpper
         img = self.transform(feed)
 
         circles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 150, param1=101, param2=11,
@@ -88,6 +86,7 @@ class Detector:
                     cv2.circle(img, center, radius, (255, 0, 255), 3)
                     dets.append(ImgUtils.circleToRectabgle(center, radius))
         return dets
+
 
 class DetectionUtils:
     @staticmethod

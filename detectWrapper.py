@@ -16,8 +16,9 @@ class DetectorWrapper:
     # (line, production stage) -> (ip address)
     cameras = \
         {
-            (1, 0) : ('rtsp://Operator:PHZOperator@10.150.10.155/1', 7),  # raw
+            # (1, 0) : ('rtsp://Operator:PHZOperator@10.150.10.155/1', 7),  # raw
             (1, 1) : ('rtsp://Operator:PHZOperator@10.150.10.154/1', 7),  # postbake
+            (-1, -1) : ('rtsp://Operator:operator@10.110.1.55/1', 100), # new
             (3, 0) : ('rtsp://Operator:PHZOperator@10.150.10.156/1', 5)   # brick
         }
 
@@ -111,23 +112,24 @@ class DetectorWrapper:
                 previousN = self.D.numObjects
                 # print(transmission)
             while True:
+                # if self.D.numObjects < 40:
+                #     break
                 ImgUtils.show("Live", feed, 0, 0)
                 ImgUtils.show("Contrast", contrast, 700, 0)
-
                 keyboard = cv2.waitKey(1)
                 if keyboard == ord('q'):
                     return
-                break
+                # break
                 if keyboard == ord('v'):
                     break
 
 
     @staticmethod
-    def testCamera():
+    def testCamera(ip):
         prevTime = 0
         counter = 8850
         camera = cv2.VideoCapture()
-        camera.open('rtsp://Operator:PHZOperator@10.150.10.154/1')
+        camera.open(ip)
         while True:
             _, feed = camera.read()
             if feed is None:
@@ -153,6 +155,8 @@ if __name__ == "__main__":
 
     # pos = 'postbakeDebug'
     D = DetectorWrapper(lineNumber=3, positionOnLine=0, samplingPeriod=10000000, guiMode=True, port=-1)
-    D.slideshow()
-    # D.video()
-    # DetectorWrapper.testCamera()
+    # D.slideshow()
+    D.video()
+
+    # DetectorWrapper.testCamera(ip='rtsp://operator:Operator@10.110.1.55/1')
+    # print('dd')

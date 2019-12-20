@@ -3,19 +3,22 @@ import numpy as np
 
 from imgUtils import ImgUtils
 from track import Tracker
+from detectionBase import BaseDetector
 
-class Detector:
+
+class Detector(BaseDetector):
     def __init__(self,):
+        super(Detector, self).__init__()
         self.transformer = None
-        self.numObjects = -1
-        trackerArgs = {'upperBound': 450, 'lowerBound': 350,
+
+        trackerArgs = {'upperBound': 200, 'lowerBound': 70,
                        'rightBound': 9999, 'leftBound' : -9999,
                        'timeToDie': 5, 'timeToLive': 3,
                        'roiTrackingMode': True
                        }
         self.tracker = Tracker(**trackerArgs)
-        self.counter = 10000
-        self.guiMode = False
+        self.sizeLower = 0
+        self.sizeUpper = 0
 
     def transform(self, img):
         # contrast = cv2.inRange(img, lowerb=(0, 0, 0), upperb=(220, 200, 200))
@@ -24,20 +27,21 @@ class Detector:
         # contrast = cv2.morphologyEx(contrast, cv2.MORPH_ERODE, kernel, iterations=1)
 
         # contrast = cv2.inRange(img, lowerb=(0, 130, 150), upperb=(200, 255, 255 ))
-        contrast = cv2.inRange(img, lowerb=(0, 0, 0), upperb=(200, 200, 200))
+        contrast = cv2.inRange(img, lowerb=(0, 0, 0), upperb=(220, 180, 180))
         cv2.bitwise_not(src=contrast, dst=contrast)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 13))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 15))
         cv2.morphologyEx(src=contrast, dst=contrast, op=cv2.MORPH_ERODE, kernel=kernel, iterations=1)
         cv2.medianBlur(src=contrast, dst=contrast, ksize=11)
-
         return contrast
 
     def resize(self, img, ymin=400, ymax=1080, xmin=400, xmax=1920):
         return img[ymin:ymax, xmin:xmax]
 
     def detect(self, feed):
-        img = feed[550:, 350:-400, :]
-        # img = feed[400:, 80:-80, :]
+        # img = feed[550:, 350:-400, :]
+        img = cv2.resize(feed, fx=0.5, fy=0.5, dsize=(0, 0))
+
+        img = img[100+200:, 200:-200, :]
 
         contrast = np.copy(img)
         contrast = self.transform(contrast)
@@ -58,15 +62,17 @@ class Detector:
 
         tracked, newRois = self.tracker.track(rois)
         self.numObjects = self.tracker.N
-        if self.guiMode:
-            for roi in rois:
-                ImgUtils.drawRect(roi, img)
-                detectedCentroid = ImgUtils.getCentroid(roi)
-                ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
 
-            for objectId, centroid in tracked.items():
-                ImgUtils.drawCircle((centroid[0], centroid[1]), img)
-                ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(0, 255, 0))
+        for roi in rois:
+            ImgUtils.drawRect(roi, img)
+            detectedCentroid = ImgUtils.getCentroid(roi)
+            ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
+            ImgUtils.putText(coords=(roi[0] + 50, roi[1] + 50), text=str(roi[2] - roi[0]), img=img,
+                             colour=(255, 255, 0), fontSize=3)
+
+        for objectId, centroid in tracked.items():
+            ImgUtils.drawCircle((centroid[0], centroid[1]), img)
+            ImgUtils.putText(coords=centroid, text=str(objectId % 1000), img=img, colour=(0, 255, 0))
 
         # for roi in newRois:
         #     print(roi[3]-roi[1], roi[2]-roi[0])
@@ -84,9 +90,9 @@ class Detector:
             x, y, w, h = cv2.boundingRect(c)
             if len(approx) < 1 or w < 130 or h < 60:
                 continue
-            x1 = x;
+            x1 = x
             x2 = x1 + w
-            y1 = y;
+            y1 = y
             y2 = y1 + h
             if w > 250 or h > 250:
                 print(w, h)
@@ -106,27 +112,7 @@ class Detector:
         return rois
 
 
-    @staticmethod
-    def detectContours(frame, widthLower, widthUpper, heightLower, heigthUpper):
-        """
-        :param frame: grayscale image with some rectangular blobs
-        :return: [(xmin, ymin, xmax, ymax), ...]
-        """
-        contours, h = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        rois = []
-        for c in contours:
-            approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
-            x, y, w, h = cv2.boundingRect(c)
-            if len(approx) < 1 or \
-                    w < widthLower or h < heightLower or \
-                    w > widthUpper or h > heigthUpper:
-                continue
-            x1 = x
-            x2 = x1 + w
-            y1 = y
-            y2 = y1 + h
-            rois.append([x1, y1, x2, y2])
-        return rois
+
 
 
 if __name__ == "__main__":
