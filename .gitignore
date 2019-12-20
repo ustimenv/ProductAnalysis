@@ -115,7 +115,7 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-
+asciiGrapher.py
 # Pyre type checker
 .pyre/
 *.xml
