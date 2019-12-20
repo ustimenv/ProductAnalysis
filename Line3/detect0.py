@@ -52,13 +52,22 @@ class Detector(BaseDetector):
             x, y, w, h = cv2.boundingRect(c)
             if len(approx) < 1 or w < 100 or h < 40:
                 continue
-            x1 = x
-            x2 = x1 + w
-            y1 = y
-            y2 = y1 + h
+            elif h > 140:
+                x1 = x
+                x2 = x1 + w
+                y1 = y
+                y2 = y1 + int(h/2)
+                rois.append([x1, y1, x2, y2])
+                
+                rois.append([x1, y2, x2, y2+int(h/2)])
+            else:
+                x1 = x
+                x2 = x1 + w
+                y1 = y
+                y2 = y1 + h
+                rois.append([x1, y1, x2, y2])
             # if y1 < 250 or x2 < 100:
             #     continue
-            rois.append([x1, y1, x2, y2])
 
         tracked, newRois = self.tracker.track(rois)
         self.numObjects = self.tracker.N
