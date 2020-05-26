@@ -8,7 +8,7 @@ from detectionBase import BaseDetector
 
 class Detector(BaseDetector):
     def __init__(self):
-        super(Detector, self).__init__()
+        super(Detector, self).__init__(pathToCached='~/Samples/cached/Line11', pathToSamples='~/Samples/samples/Line11')
         # self.sizeLower = 40
         # self.sizeUpper = 150
         self.sizeLower = 60
@@ -26,9 +26,6 @@ class Detector(BaseDetector):
         self.averageSize = 0
 
     def transform(self, img):
-        # contrast = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)[:, :, 2]
-        # contrast = cv2.medianBlur(contrast, 7, 5)
-        # contrast = cv2.threshold(src=contrast, maxval=255, thresh=70, type=cv2.THRESH_BINARY)[1]
         contrast = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)[:, :, 2]
         contrast = cv2.medianBlur(contrast, 13, 9)
         contrast = cv2.threshold(src=contrast, maxval=255, thresh=70, type=cv2.THRESH_BINARY)[1]
@@ -39,6 +36,8 @@ class Detector(BaseDetector):
 
     def detect(self, img):
         hBefore, wBefore, _ = img.shape
+        self.cacher.update(img)
+        self.sampler.update(img)
         img = self.resize(img)
         origImg = np.copy(img)
         contrast = self.transform(img)

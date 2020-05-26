@@ -32,7 +32,7 @@ class DetectorWrapper:
         if not self.debugMode:
             self.writer = SocketWriter(port)
 
-        cameraIp, self.frameRate = Constants.cameras[(lineNumber, positionOnLine)]
+        cameraIp = Constants.cameras[(lineNumber, positionOnLine)]
         self.camera = cv2.VideoCapture()
         self.camera.open(cameraIp)
 
@@ -50,7 +50,7 @@ class DetectorWrapper:
             if feed is None:
                 continue
 
-            if timeElapsed > 1.0 / self.frameRate:  # reduce frame rate to ease the stress on the camera & network
+            if timeElapsed > 1.0 / 6:  # reduce frame rate to ease the stress on the camera & network
                 prevTime = time.time()
                 curTime = time.time()
 

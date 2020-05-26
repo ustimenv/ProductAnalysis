@@ -1,5 +1,6 @@
 import time
 from collections import deque
+from os.path import expanduser
 from random import randint
 
 import cv2
@@ -13,7 +14,7 @@ class BaseDetector:
         self.tracker = None
         self.numObjects = -1
         self.cacher = FrameCacher(saveDir=pathToCached, capacity=10, minTimeTilNextSave=5)
-        self.sampler = FrameSampler(saveDir=pathToSamples, framesPerSample=10, samplingPeriod=5, maxSamples=5000, )
+        self.sampler = FrameSampler(saveDir=pathToSamples, framesPerSample=20, samplingPeriod=20*60, maxSamples=10000)
 
     def detect(self, image):
         raise NotImplementedError
@@ -221,7 +222,8 @@ class FrameSampler:
         if self.currentSampleSize < self.framesPerSample:
             path = self.path + '/' + FrameCacher.formatTime(currentTime) + '|'
             path += str(self.index) + '.png'
-            cv2.imwrite(path, frame)
+
+            cv2.imwrite(expanduser(path), frame)
             self.currentSampleSize += 1; self.index += 1
 
 
