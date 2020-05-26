@@ -120,6 +120,5 @@ asciiGrapher.py
 .pyre/
 *.xml
 models/*
-utils/*
 debug.py
 miscellaneous.py
