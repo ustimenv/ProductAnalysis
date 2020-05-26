@@ -1,44 +1,27 @@
-import re
 import time
-from datetime import datetime
+from collections import deque
+from random import randint
 
 import cv2
 import numpy as np
-from imgUtils import ImgUtils
+
+from utils.imgUtils import ImgUtils
 
 
 class BaseDetector:
-    def __init__(self):
+    def __init__(self, pathToCached, pathToSamples):
         self.tracker = None
         self.numObjects = -1
-
-        self.imgCache = dict()
-        self.cacheIndex = 0
-
-        self.historic = []
-
-    def evaluatePast(self, image, rois):
-        self.imgCache[self.cacheIndex % 20] = \
-            (re.sub('\.[0-9]*', '', str(datetime.fromtimestamp(time.time()))),
-             image)
-        self.cacheIndex += 1
-
-        pass
-
-    def flushCache(self):
-        # if something weird has occured, flush the cache for future evaluation
-        for (tsp, img) in self.imgCache.values():
-            cv2.imwrite('Imgs/' + tsp, img)
-        self.imgCache.clear()
+        self.cacher = FrameCacher(saveDir=pathToCached, capacity=10, minTimeTilNextSave=5)
+        self.sampler = FrameSampler(saveDir=pathToSamples, framesPerSample=10, samplingPeriod=5, maxSamples=5000, )
 
     def detect(self, image):
         raise NotImplementedError
 
-    def detectDebug(self, image):
-        raise NotImplementedError
+    # Detection utils
 
-    
-    def detectContours(self, frame, widthLower, widthUpper, heightLower, heigthUpper):
+    @staticmethod
+    def detectContours(frame, widthLower, widthUpper, heightLower, heigthUpper):
         """
         :param frame: grayscale image with some rectangular blobs
         :return: [(xmin, ymin, xmax, ymax), ...]
@@ -59,7 +42,8 @@ class BaseDetector:
             rois.append([x1, y1, x2, y2])
         return rois
 
-    def houghDetect(self, img, radiusMin, radiusMax):
+    @staticmethod
+    def houghDetect(img, radiusMin, radiusMax):
         """
 
         :param img: grayscale image with some circles
@@ -77,7 +61,7 @@ class BaseDetector:
                 radius = i[2]
                 if radiusMin < radius < radiusMax:
                     cv2.circle(img, center, radius, (255, 0, 255), 3)
-                    roi = ImgUtils.circleToRectabgle(center, radius)
+                    roi = ImgUtils.findBoxAroundCircle(center, radius)
                     rois.append(roi)
                     radii.append(radius)
         return rois, radii
@@ -128,7 +112,8 @@ class BaseDetector:
                 return [0, 0, 0, 0]
         return meanCoords
 
-    def getBeltCoordinates(self, img):
+    @staticmethod
+    def getBeltCoordinates(img):
         roi = [0, 0, 0, 0]  # xmin, ymin, xmax, ymax
         gray = cv2.cvtColor(np.copy(img), cv2.COLOR_BGR2GRAY)
         height, width, _ = img.shape
@@ -182,10 +167,67 @@ class BaseDetector:
         return partitionedRois
 
 
-# encapsulates detection information on an image
-class Detection:
-    def __init__(self, rois):
-        self.areas = [(x2 - x1) * (y2 - y1) for (x1, y1, x2, y2) in rois]
-        self.centroids = [(int((roi[0] + roi[2]) / 2.0),
-                           int((roi[0] + roi[2]) / 2.0)) for roi in rois]
+# maintain a fixed-size cache of video frames for later analysis should something go wrong
+class FrameCacher:
+    def __init__(self, capacity, saveDir, minTimeTilNextSave=5):
+        self.capacity = capacity
+        self.cache = deque()
+        self.timeOfLastSave = time.time()
+        self.path = saveDir
+        self.period = minTimeTilNextSave
+
+    def update(self, frame):
+        self.cache.append(frame)
+        if len(self.cache) > self.capacity:
+            self.cache.popleft()
+
+    def write(self):
+        currentTime = time.time()
+        path = self.path + '/' + FrameCacher.formatTime(currentTime) + '|'
+        if currentTime - self.timeOfLastSave >= self.period:
+            for i, frame in enumerate(self.cache):
+                path += str(i) + '.png'
+                cv2.imwrite(path, frame)
+            self.cache.clear()
+            self.timeOfLastSave = currentTime
+
+    @staticmethod
+    def formatTime(t):
+        t = time.asctime().split(' ')
+        t[4], t[0], t[1], t[2], t[3] = t[0], t[1], t[2], t[3], t[4]
+        return '|'.join(t) + '-'
+
+
+class FrameSampler:
+    def __init__(self, saveDir, samplingPeriod, maxSamples, framesPerSample):
+        self.timeOfLastSave = time.time()
+        self.path = saveDir
+        self.period = samplingPeriod
+        self.maxSamples = maxSamples
+        self.index = 0
+        self.currentSampleSize = framesPerSample
+        self.framesPerSample = framesPerSample
+
+    def update(self, frame):
+        if self.index > self.maxSamples: return
+        currentTime = time.time()
+
+        # initiate sampling every hour or so
+        if currentTime - self.timeOfLastSave >= self.period:
+            self.currentSampleSize = 0
+            self.timeOfLastSave = currentTime
+
+        # we want to sample framesPerSample consecutive frames
+        if self.currentSampleSize < self.framesPerSample:
+            path = self.path + '/' + FrameCacher.formatTime(currentTime) + '|'
+            path += str(self.index) + '.png'
+            cv2.imwrite(path, frame)
+            self.currentSampleSize += 1; self.index += 1
+
+
+    @staticmethod
+    def _formatTIme(t):
+        t = time.asctime().split(' ')
+        t[4], t[0], t[1], t[2], t[3] = t[0], t[1], t[2], t[3], t[4]
+        return '|'.join(t) + '-'
 

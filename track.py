@@ -3,7 +3,7 @@ from collections import OrderedDict
 import numpy as np
 from scipy.spatial.distance import cdist
 
-from imgUtils import ImgUtils
+from utils.imgUtils import ImgUtils
 
 
 # we track based only  on the y-ordinate: the conveyor is moving vertically so x-displacement is meaningless
@@ -12,7 +12,7 @@ from imgUtils import ImgUtils
 
 
 class Tracker:
-    def __init__(self, lowerBound, upperBound, leftBound, rightBound, timeToDie, timeToLive, roiTrackingMode):
+    def __init__(self, lowerBound, upperBound, leftBound, rightBound, timeToDie, timeToLive):
         self.nextId = 0                         # an ID number we will assign to the next object we detect(!=numObjects)
         self.N = 0                              # actual number of objects that we have so far counted,
                                                 # only incremented once we are sure we are seeing an actual object
@@ -22,18 +22,11 @@ class Tracker:
 
         self.timeToDie = timeToDie              # consecutive frames till we stop tracking the object
         self.timeToLive = timeToLive            # consecutive frames till we start tracking the object
-        self.roiTrackingMode = roiTrackingMode  # whether to track centroids or rois
 
         self.upperBound = upperBound      # border beyond which we do not accept any new detections
         self.lowerBound = lowerBound
         self.leftBound = leftBound
         self.rightBound = rightBound
-
-        # if we are tracking rois, convert them to centroids
-        # if roiTrackingMode:
-        #     self.roiConverter = self._roisToCentroidsHelper
-        # else:
-        #     self.roiConverter = ImgUtils.returnUnchanged
 
     def register(self, roi):
         bufferCondition = self.lowerBound < (roi[1]+roi[3])/2 < self.upperBound \
@@ -93,8 +86,8 @@ class Tracker:
                     objectId = objectIds[row]
                     #####
                     if abs(
-                            ImgUtils.getCentroid(self.trackedRois[objectId])[1] -
-                            ImgUtils.getCentroid(detected[col])[1]) < 100:
+                            ImgUtils.findRoiCentroid(self.trackedRois[objectId])[1] -
+                            ImgUtils.findRoiCentroid(detected[col])[1]) < 100:
 
                         self.trackedRois[objectId] = detected[col]
                         self.missing[objectId] = 0

@@ -2,49 +2,41 @@ import argparse
 import glob
 import logging
 import traceback
+from collections import deque
 
 import cv2
 import numpy as np
+from miscellaneous import Constants
 from detectorFactory import DetectorFactory
-from imgUtils import ImgUtils
+from utils.imgUtils import ImgUtils
 import time
-from networking import SocketWriter
+from utils.networking import SocketWriter
 import sys
 
-
 class DetectorWrapper:
-    # (line, production stage) -> (ip address)
-    cameras = \
-        {
-            # (1, 0) : ('rtsp://Operator:PHZOperator@10.150.10.155/1', 7),  # raw
-            (1, 1) : ('rtsp://Operator:PHZOperator@10.150.10.154/1', 7),  # postbake
-            (-1, -1) : ('rtsp://Operator:operator@10.110.1.55/1', 100), # new
-            (3, 0) : ('rtsp://Operator:PHZOperator@10.150.10.156/1', 5)   # brick
-        }
 
-    def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, guiMode=False):
+    def __init__(self, lineNumber, positionOnLine, port, samplingPeriod, debugMode=False):
         """
         :param lineNumber: production line this detector instance is looking at
         :param positionOnLine:  production stage, either raw dough or straight out of the oven
         :param samplingPeriod: time in seconds - either how often to either send or save frames
-        :param guiMode: whether to transmit the data to the server
+        :param debugMode: if true, do not transmit data to the server
         """
-        self.guiMode = guiMode                                # is the programme live, ig whether to transmite data
-        self.samplingPeriod = samplingPeriod                    # number of seconds betweeen each transition
 
         self.D = DetectorFactory.getDetector(lineNumber, positionOnLine)
-        self.D.guiMode = guiMode
+        self.debugMode = debugMode
+        self.samplingPeriod = samplingPeriod  # rate of writing data to the server
 
-        if not self.guiMode:
+        self.D.guiMode = debugMode  # TODO delete
+
+        if not self.debugMode:
             self.writer = SocketWriter(port)
 
-        self.cameraIp, self.frameRate = self.cameras[(lineNumber, positionOnLine)]
-
+        cameraIp, self.frameRate = Constants.cameras[(lineNumber, positionOnLine)]
         self.camera = cv2.VideoCapture()
-        self.filenamePrefix = str(positionOnLine) + '/' + 'PassiveSamples/'
+        self.camera.open(cameraIp)
 
     def video(self):
-        self.camera.open(self.cameraIp)
         writeTime = time.time()
         saveTime = time.time()
         prevTime = 0
@@ -58,38 +50,32 @@ class DetectorWrapper:
             if feed is None:
                 continue
 
-            if timeElapsed > 1.0/self.frameRate:        # reduce framerate to ease the stress on the camera & network
+            if timeElapsed > 1.0 / self.frameRate:  # reduce frame rate to ease the stress on the camera & network
                 prevTime = time.time()
                 curTime = time.time()
 
                 feed, contrast, out = self.D.detect(feed)
 
-                if self.guiMode:
+                if self.debugMode:
                     ImgUtils.show("Live", feed, 0, 0)
                     ImgUtils.show("Contrast", contrast, 0, 600)
 
-                # TRANSMIT FINDINGS
-                if not self.guiMode and curTime - writeTime >= self.samplingPeriod:
-                    try:
-                        num = self.D.numObjects-previousN
-                        if num == 1:
-                            num = 0
-                        transmission = str(num) + '#'
-                        print('Writing ', transmission)
-                        # if num > 0 and self.D.colourTracking and self.D.dimTracking:
-                        #     size = int(self.D.averageSize / num)
-                        #     colour = [str(int(i / num)) for i in self.D.averageColour]
-                        #     transmission += (str(size) + '#' + str(colour[2])+'|'+str(colour[1])+'|'+str(colour[0])+'|')
-                        #     self.D.averageColour = [0, 0, 0]
-                        #     self.D.averageSize = 0
+                # transmit our findings
+                if curTime - writeTime >= self.samplingPeriod:
+                    num = self.D.numObjects - previousN
+                    if not self.debugMode:
+                        try:
+                            transmission = str(num) + '#'
+                            self.writer.write(transmission)
+                            self.writer.flush()
 
-                        self.writer.write(transmission)
-                        previousN = self.D.numObjects
-                        self.writer.flush()
+                        except Exception as e:
+                            print("______Critical error", file=sys.stderr)
+                        writeTime = curTime
+                    else:
+                        print('Counted ', str(num), ' in ', str(self.samplingPeriod), ' frames')
 
-                    except Exception as e:
-                        print("______Critical error", file=sys.stderr)
-                    writeTime = curTime
+                    previousN = self.D.numObjects
 
                 keyboard = cv2.waitKey(30)
                 if keyboard == 27:
@@ -97,66 +83,26 @@ class DetectorWrapper:
                 elif keyboard == ord('q'):
                     return
 
-    def slideshow(self):
+    def slideshow(self, srcPath):
         previousN = 0
         for i in range(1, 10000):
-            srcPath = '/beta/Work/2/brick/'+str(i)+'.png'
+            srcPath += str(i) + '.png'
             img = cv2.imread(srcPath)
             if img is None:
                 continue
             feed, contrast, out = self.D.detect(img)
 
-            if i % 40 == 0:
+            if i % self.samplingPeriod == 0:
                 num = self.D.numObjects - previousN
-                transmission = str(num) + '#'
                 previousN = self.D.numObjects
-                # print(transmission)
+                print(num)
             while True:
-                # if self.D.numObjects < 40:
-                #     break
                 ImgUtils.show("Live", feed, 0, 0)
                 ImgUtils.show("Contrast", contrast, 700, 0)
                 keyboard = cv2.waitKey(1)
                 if keyboard == ord('q'):
                     return
-                # break
                 if keyboard == ord('v'):
                     break
 
 
-    @staticmethod
-    def testCamera(ip):
-        prevTime = 0
-        counter = 8850
-        camera = cv2.VideoCapture()
-        camera.open(ip)
-        while True:
-            _, feed = camera.read()
-            if feed is None:
-                continue
-            timeElapsed = time.time() - prevTime
-            if timeElapsed > 1.0/7:
-                prevTime = time.time()
-                # cv2.imwrite('/beta/Work/2/postbake2/'+str(counter)+'.png', feed)
-                counter += 1
-                ImgUtils.show('Img', feed, 0, 0)
-            if counter > 10000:
-                print("Sufficient samples")
-                return
-            keyboard = cv2.waitKey(30)
-            if keyboard == ord('v'):
-                break
-            elif keyboard == ord('q'):
-                return
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    # pos = 'postbakeDebug'
-    D = DetectorWrapper(lineNumber=3, positionOnLine=0, samplingPeriod=10000000, guiMode=True, port=-1)
-    # D.slideshow()
-    D.video()
-
-    # DetectorWrapper.testCamera(ip='rtsp://operator:Operator@10.110.1.55/1')
-    # print('dd')

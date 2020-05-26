@@ -40,7 +40,7 @@ class Detector:
             for roi in rois:
 
                 ImgUtils.drawRect(roi, img)
-                detectedCentroid = ImgUtils.getCentroid(roi)
+                detectedCentroid = ImgUtils.findRoiCentroid(roi)
                 ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
                 ImgUtils.putText(coords=(roi[0] + 50, roi[1] + 50), text=str(roi[2]-roi[0]), img=img, colour=(255, 255, 0), fontSize=3)
             for objectId, centroid in tracked.items():
@@ -90,7 +90,7 @@ class Detector:
         if self.guiMode:
             for roi in rois:
                 ImgUtils.drawRect(roi, img)
-                detectedCentroid = ImgUtils.getCentroid(roi)
+                detectedCentroid = ImgUtils.findRoiCentroid(roi)
                 ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
             for objectId, centroid in tracked.items():
                 ImgUtils.drawCircle((centroid[0], centroid[1]), img)
@@ -134,7 +134,7 @@ class Detector:
         if self.guiMode:
             for roi in rois:
                 ImgUtils.drawRect(roi, img)
-                detectedCentroid = ImgUtils.getCentroid(roi)
+                detectedCentroid = ImgUtils.findRoiCentroid(roi)
                 ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
             for objectId, centroid in tracked.items():
                 ImgUtils.drawCircle((centroid[0], centroid[1]), img)
@@ -191,7 +191,7 @@ class Detector:
                 radius = i[2]
                 if radiusMin < radius < radiusMax:
                     cv2.circle(img, center, radius, (255, 0, 255), 3)
-                    dets.append(ImgUtils.circleToRectabgle(center, radius))
+                    dets.append(ImgUtils.findBoxAroundCircle(center, radius))
         return dets
 
     def raw1Debug(self, img):
@@ -224,7 +224,7 @@ class DetectionUtils:
                 radius = i[2]
                 if radiusMin < radius < radiusMax:
                     cv2.circle(img, center, radius, (255, 0, 255), 3)
-                    roi = ImgUtils.circleToRectabgle(center, radius)
+                    roi = ImgUtils.findBoxAroundCircle(center, radius)
                     rois.append(roi)
                     radii.append(radius)
         return rois, radii

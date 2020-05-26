@@ -121,3 +121,5 @@ asciiGrapher.py
 *.xml
 models/*
 utils/*
+debug.py
+miscellaneous.py

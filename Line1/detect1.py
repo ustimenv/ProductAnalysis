@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from imgUtils import ImgUtils
+from utils.imgUtils import ImgUtils
 from track import Tracker
 from detectionBase import BaseDetector
 
@@ -12,12 +12,11 @@ class Detector(BaseDetector):
         # self.sizeLower = 40
         # self.sizeUpper = 150
         self.sizeLower = 60
-        self.sizeUpper = 230
+        self.sizeUpper = 200
 
         trackerArgs = { 'upperBound': 300, 'lowerBound': 220,
                         'rightBound': 270, 'leftBound': 30,
                         'timeToDie': 1, 'timeToLive': 0,
-                        'roiTrackingMode' : False
          }
 
         self.tracker = Tracker(**trackerArgs)
@@ -50,7 +49,7 @@ class Detector(BaseDetector):
         if self.guiMode:
             for roi in rois:
                 ImgUtils.drawRect(roi, img)
-                detectedCentroid = ImgUtils.getCentroid(roi)
+                detectedCentroid = ImgUtils.findRoiCentroid(roi)
                 ImgUtils.drawCircle(detectedCentroid, img, colour=(255, 0, 0))
                 ImgUtils.putText(coords=(roi[0] + 50, roi[1] + 50), text=str(roi[2]-roi[0]), img=img, colour=(255, 255, 0), fontSize=3)
 
@@ -84,7 +83,7 @@ class Detector(BaseDetector):
                 radius = i[2]
                 if radiusMin < radius < radiusMax:
                     cv2.circle(img, center, radius, (255, 0, 255), 3)
-                    dets.append(ImgUtils.circleToRectabgle(center, radius))
+                    dets.append(ImgUtils.findBoxAroundCircle(center, radius))
         return dets
 
 
@@ -108,7 +107,7 @@ class DetectionUtils:
                 radius = i[2]
                 if radiusMin < radius < radiusMax:
                     cv2.circle(img, center, radius, (255, 0, 255), 3)
-                    roi = ImgUtils.circleToRectabgle(center, radius)
+                    roi = ImgUtils.findBoxAroundCircle(center, radius)
                     rois.append(roi)
                     radii.append(radius)
         return rois, radii

@@ -32,7 +32,7 @@ class Manager:
                 score = x[1]
                 roi = x[2]
 
-                centre = ImgUtils.getCentroid(roi)
+                centre = ImgUtils.findRoiCentroid(roi)
                 cv2.circle(img, centre, 20, (255, 0, 255), 3)
 
                 label = '|{}|.{:.3f}'.format(cid, score)
